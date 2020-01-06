@@ -17,6 +17,14 @@ void usart_init(int bps)
 
     UBRR1H = (unsigned char)((bps>>8)  & 0x00ff);
     UBRR1L = (unsigned char)(bps & 0x00ff);
+
+    UCSR0A = 0x00;
+    UCSR0B = (1<<RXEN0)|(1<<TXEN0)|(1<<RXCIE0); // RXCIE1 bit is recevie interrupt allow 
+    UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);
+    UCSR0C &= ~(1<<UMSEL0);
+
+    UBRR0H = (unsigned char)((bps>>8)  & 0x00ff);
+    UBRR0L = (unsigned char)(bps & 0x00ff);
 }
 
 void putch_USART1(char data)
@@ -32,6 +40,23 @@ void puts_USART1(char *str)
     while(*str !=0)
     {
         putch_USART1(*str);
+        str++;
+    }
+}
+
+void putch_USART0(char data)
+{
+    while(!(UCSR0A & (1<<UDRE0))); // UDRE flag is USART Data Register Empty
+    UDR0 = data;
+}
+
+void puts_USART0(char *str)
+{
+    PACKET_BUFF_IDX = 0;
+
+    while(*str !=0)
+    {
+        putch_USART0(*str);
         str++;
     }
 }
@@ -79,26 +104,28 @@ int RTU_WriteOperate(char device_address,int starting_address,int data)
     
     for(i=0;i<8;i++)
     {
-        putch_USART1(*(protocol+i));
+        putch_USART0(*(protocol+i));
     }
 }
 
-interrupt [USART1_RXC] void usart1_rxc(void)
+interrupt [USART0_RXC] void usart0_rxc(void)
 {
-    PACKET_BUFF[PACKET_BUFF_IDX] = UDR1;
+    PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
     PACKET_BUFF_IDX++;
 }
 
 void main(void)
 {
+    unsigned char check_cnt = 0;
     usart_init(bps_115200);
     SREG |= 0x80;
     
     while(1)
     {
-        //delay_ms(500);
-        if(PACKET_BUFF_IDX != 0)
-            puts_USART1(PACKET_BUFF);
-        //RTU_WriteOperate(0x01,0x0079,(int)(0));
+        RTU_WriteOperate(0x01,0x0079,(int)(1000));
+        delay_ms(100);
+        //puts_USART1(PACKET_BUFF);
+        RTU_WriteOperate(0x01,0x0078,(int)(1));
+        delay_ms(300);
     }
 }

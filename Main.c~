@@ -7,9 +7,6 @@
 
 unsigned char PACKET_BUFF[100] = {0,};
 unsigned char PACKET_BUFF_IDX = 0;
-// Byte cnt;
-// Byte key;
-// Byte *ptr = str_buf;
 
 void usart_init(int bps)
 {
@@ -88,20 +85,33 @@ int RTU_WriteOperate(char device_address,int starting_address,int data)
 
 interrupt [USART1_RXC] void usart1_rxc(void)
 {
-    PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+    PACKET_BUFF[PACKET_BUFF_IDX] = UDR1;
     PACKET_BUFF_IDX++;
 }
 
 void main(void)
 {
+    unsigned char check_cnt = 0;
     usart_init(bps_115200);
     SREG |= 0x80;
     
     while(1)
     {
         //delay_ms(500);
-        if(PACKET_BUFF_IDX != 0)
-            puts_USART1(PACKET_BUFF);
-        //RTU_WriteOperate(0x01,0x0079,(int)(0));
+        // if(PACKET_BUFF_IDX != 0)
+        //     puts_USART1(PACKET_BUFF);
+        //if(PACKET_BUFF_IDX != 0)
+        //{}
+       // if(check_cnt == 0)
+       //{
+            RTU_WriteOperate(0x01,0x0079,(int)(1000));
+            delay_ms(100);
+            RTU_WriteOperate(0x01,0x0078,(int)(1));
+            delay_ms(300);
+        //}
+        check_cnt ++;
+        //}
+        //RTU_WriteOperate(0x01,0x0078,(int)(2));
+
     }
 }

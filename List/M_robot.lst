@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.1.30  C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm Sun Jan 05 19:00:09 2020
+AVRASM ver. 2.1.30  C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm Mon Jan 06 13:27:24 2020
 
 C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1061): warning: Register r5 already defined by the .DEF directive
                  
@@ -1090,7 +1090,7 @@ C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1061): warning: Register r5 alr
 00001e 940c 0000 	JMP  0x00
 000020 940c 0000 	JMP  0x00
 000022 940c 0000 	JMP  0x00
-000024 940c 0000 	JMP  0x00
+000024 940c 0133 	JMP  _usart0_rxc
 000026 940c 0000 	JMP  0x00
 000028 940c 0000 	JMP  0x00
 00002a 940c 0000 	JMP  0x00
@@ -1102,20 +1102,20 @@ C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1061): warning: Register r5 alr
 000036 940c 0000 	JMP  0x00
 000038 940c 0000 	JMP  0x00
 00003a 940c 0000 	JMP  0x00
-00003c 940c 00af 	JMP  _usart1_rxc
+00003c 940c 0000 	JMP  0x00
 00003e 940c 0000 	JMP  0x00
 000040 940c 0000 	JMP  0x00
 000042 940c 0000 	JMP  0x00
 000044 940c 0000 	JMP  0x00
                  
-                 _0x18:
+                 _0x1D:
 C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1107): warning: .cseg .db misalignment - padding zero byte
 000046 0000      	.DB  0x0
                  
                  __GLOBAL_INI_TBL:
 000047 0001      	.DW  0x01
 000048 0005      	.DW  0x05
-000049 008c      	.DW  _0x18*2
+000049 008c      	.DW  _0x1D*2
                  
                  _0xFFFFFFFF:
 00004a 0000      	.DW  0
@@ -1191,7 +1191,7 @@ C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1107): warning: .cseg .db misal
 00007a e0c0      	LDI  R28,LOW(__SRAM_START+__DSTACK_SIZE)
 00007b e0d5      	LDI  R29,HIGH(__SRAM_START+__DSTACK_SIZE)
                  
-00007c 940c 00c2 	JMP  _main
+00007c 940c 0145 	JMP  _main
                  
                  	.ESEG
                  	.ORG 0
@@ -1220,204 +1220,400 @@ C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1107): warning: .cseg .db misal
                  ;
                  ;unsigned char PACKET_BUFF[100] = {0,};
                  ;unsigned char PACKET_BUFF_IDX = 0;
-                 ;// Byte cnt;
-                 ;// Byte key;
-                 ;// Byte *ptr = str_buf;
                  ;
                  ;void usart_init(int bps)
-                 ; 0000 000F {
+                 ; 0000 000C {
                  
                  	.CSEG
                  _usart_init:
-                 ; 0000 0010     UCSR1A = 0x00;
+                 ; 0000 000D     UCSR1A = 0x00;
                  ;	bps -> Y+0
 00007e e0e0      	LDI  R30,LOW(0)
 00007f 93e0 009b 	STS  155,R30
-                 ; 0000 0011     UCSR1B = (1<<RXEN1)|(1<<TXEN1)|(1<<RXCIE1); // RXCIE1 bit is recevie interrupt allow
+                 ; 0000 000E     UCSR1B = (1<<RXEN1)|(1<<TXEN1)|(1<<RXCIE1); // RXCIE1 bit is recevie interrupt allow
 000081 e9e8      	LDI  R30,LOW(152)
 000082 93e0 009a 	STS  154,R30
-                 ; 0000 0012     UCSR1C = (1<<UCSZ11)|(1<<UCSZ10);
+                 ; 0000 000F     UCSR1C = (1<<UCSZ11)|(1<<UCSZ10);
 000084 e0e6      	LDI  R30,LOW(6)
 000085 93e0 009d 	STS  157,R30
-                 ; 0000 0013     UCSR1C &= ~(1<<UMSEL1);
+                 ; 0000 0010     UCSR1C &= ~(1<<UMSEL1);
 000087 91e0 009d 	LDS  R30,157
 000089 7bef      	ANDI R30,0xBF
 00008a 93e0 009d 	STS  157,R30
-                 ; 0000 0014 
-                 ; 0000 0015     UBRR1H = (unsigned char)((bps>>8)  & 0x00ff);
+                 ; 0000 0011 
+                 ; 0000 0012     UBRR1H = (unsigned char)((bps>>8)  & 0x00ff);
 00008c 81e8      	LD   R30,Y
 00008d 81f9      	LDD  R31,Y+1
-00008e 940e 00d1 	CALL __ASRW8
+00008e 940e 0170 	CALL __ASRW8
 000090 93e0 0098 	STS  152,R30
-                 ; 0000 0016     UBRR1L = (unsigned char)(bps & 0x00ff);
+                 ; 0000 0013     UBRR1L = (unsigned char)(bps & 0x00ff);
 000092 81e8      	LD   R30,Y
 000093 93e0 0099 	STS  153,R30
-                 ; 0000 0017 }
-000095 c017      	RJMP _0x2000001
+                 ; 0000 0014 
+                 ; 0000 0015     UCSR0A = 0x00;
+000095 e0e0      	LDI  R30,LOW(0)
+000096 b9eb      	OUT  0xB,R30
+                 ; 0000 0016     UCSR0B = (1<<RXEN0)|(1<<TXEN0)|(1<<RXCIE0); // RXCIE1 bit is recevie interrupt allow
+000097 e9e8      	LDI  R30,LOW(152)
+000098 b9ea      	OUT  0xA,R30
+                 ; 0000 0017     UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);
+000099 e0e6      	LDI  R30,LOW(6)
+00009a 93e0 0095 	STS  149,R30
+                 ; 0000 0018     UCSR0C &= ~(1<<UMSEL0);
+00009c 91e0 0095 	LDS  R30,149
+00009e 7bef      	ANDI R30,0xBF
+00009f 93e0 0095 	STS  149,R30
+                 ; 0000 0019 
+                 ; 0000 001A     UBRR0H = (unsigned char)((bps>>8)  & 0x00ff);
+0000a1 81e8      	LD   R30,Y
+0000a2 81f9      	LDD  R31,Y+1
+0000a3 940e 0170 	CALL __ASRW8
+0000a5 93e0 0090 	STS  144,R30
+                 ; 0000 001B     UBRR0L = (unsigned char)(bps & 0x00ff);
+0000a7 81e8      	LD   R30,Y
+0000a8 b9e9      	OUT  0x9,R30
+                 ; 0000 001C }
+0000a9 c016      	RJMP _0x2000002
                  ;
                  ;void putch_USART1(char data)
-                 ; 0000 001A {
+                 ; 0000 001F {
                  _putch_USART1:
-                 ; 0000 001B     while(!(UCSR1A & (1<<UDRE1))); // UDRE flag is USART Data Register Empty
+                 ; 0000 0020     while(!(UCSR1A & (1<<UDRE1))); // UDRE flag is USART Data Register Empty
                  ;	data -> Y+0
                  _0x3:
-000096 91e0 009b 	LDS  R30,155
-000098 72e0      	ANDI R30,LOW(0x20)
-000099 f3e1      	BREQ _0x3
-                 ; 0000 001C     UDR1 = data;
-00009a 81e8      	LD   R30,Y
-00009b 93e0 009c 	STS  156,R30
-                 ; 0000 001D }
-00009d 9621      	ADIW R28,1
-00009e 9508      	RET
+0000aa 91e0 009b 	LDS  R30,155
+0000ac 72e0      	ANDI R30,LOW(0x20)
+0000ad f3e1      	BREQ _0x3
+                 ; 0000 0021     UDR1 = data;
+0000ae 81e8      	LD   R30,Y
+0000af 93e0 009c 	STS  156,R30
+                 ; 0000 0022 }
+0000b1 c014      	RJMP _0x2000001
                  ;
                  ;void puts_USART1(char *str)
-                 ; 0000 0020 {
+                 ; 0000 0025 {
                  _puts_USART1:
-                 ; 0000 0021     PACKET_BUFF_IDX = 0;
+                 ; 0000 0026     PACKET_BUFF_IDX = 0;
                  ;	*str -> Y+0
-00009f 2455      	CLR  R5
-                 ; 0000 0022 
-                 ; 0000 0023     while(*str !=0)
+0000b2 2455      	CLR  R5
+                 ; 0000 0027 
+                 ; 0000 0028     while(*str !=0)
                  _0x6:
-0000a0 81a8      	LD   R26,Y
-0000a1 81b9      	LDD  R27,Y+1
-0000a2 91ec      	LD   R30,X
-0000a3 30e0      	CPI  R30,0
-0000a4 f041      	BREQ _0x8
-                 ; 0000 0024     {
-                 ; 0000 0025         putch_USART1(*str);
-0000a5 93ea      	ST   -Y,R30
-0000a6 dfef      	RCALL _putch_USART1
-                 ; 0000 0026         str++;
-0000a7 81e8      	LD   R30,Y
-0000a8 81f9      	LDD  R31,Y+1
-0000a9 9631      	ADIW R30,1
-0000aa 83e8      	ST   Y,R30
-0000ab 83f9      	STD  Y+1,R31
-                 ; 0000 0027     }
-0000ac cff3      	RJMP _0x6
+0000b3 81a8      	LD   R26,Y
+0000b4 81b9      	LDD  R27,Y+1
+0000b5 91ec      	LD   R30,X
+0000b6 30e0      	CPI  R30,0
+0000b7 f041      	BREQ _0x8
+                 ; 0000 0029     {
+                 ; 0000 002A         putch_USART1(*str);
+0000b8 93ea      	ST   -Y,R30
+0000b9 dff0      	RCALL _putch_USART1
+                 ; 0000 002B         str++;
+0000ba 81e8      	LD   R30,Y
+0000bb 81f9      	LDD  R31,Y+1
+0000bc 9631      	ADIW R30,1
+0000bd 83e8      	ST   Y,R30
+0000be 83f9      	STD  Y+1,R31
+                 ; 0000 002C     }
+0000bf cff3      	RJMP _0x6
                  _0x8:
-                 ; 0000 0028 }
+                 ; 0000 002D }
+                 _0x2000002:
+0000c0 9622      	ADIW R28,2
+0000c1 9508      	RET
+                 ;
+                 ;void putch_USART0(char data)
+                 ; 0000 0030 {
+                 _putch_USART0:
+                 ; 0000 0031     while(!(UCSR0A & (1<<UDRE0))); // UDRE flag is USART Data Register Empty
+                 ;	data -> Y+0
+                 _0x9:
+0000c2 9b5d      	SBIS 0xB,5
+0000c3 cffe      	RJMP _0x9
+                 ; 0000 0032     UDR0 = data;
+0000c4 81e8      	LD   R30,Y
+0000c5 b9ec      	OUT  0xC,R30
+                 ; 0000 0033 }
                  _0x2000001:
-0000ad 9622      	ADIW R28,2
-0000ae 9508      	RET
+0000c6 9621      	ADIW R28,1
+0000c7 9508      	RET
+                 ;
+                 ;void puts_USART0(char *str)
+                 ; 0000 0036 {
+                 ; 0000 0037     PACKET_BUFF_IDX = 0;
+                 ;	*str -> Y+0
+                 ; 0000 0038 
+                 ; 0000 0039     while(*str !=0)
+                 ; 0000 003A     {
+                 ; 0000 003B         putch_USART0(*str);
+                 ; 0000 003C         str++;
+                 ; 0000 003D     }
+                 ; 0000 003E }
                  ;
                  ;unsigned short CRC16(unsigned char *puchMsg, int usDataLen)
-                 ; 0000 002B {
-                 ; 0000 002C     int i;
-                 ; 0000 002D     unsigned short crc, flag;
-                 ; 0000 002E     crc = 0xffff;
+                 ; 0000 0041 {
+                 _CRC16:
+                 ; 0000 0042     int i;
+                 ; 0000 0043     unsigned short crc, flag;
+                 ; 0000 0044     crc = 0xffff;
+0000c8 940e 0175 	CALL __SAVELOCR6
                  ;	*puchMsg -> Y+8
                  ;	usDataLen -> Y+6
                  ;	i -> R16,R17
                  ;	crc -> R18,R19
                  ;	flag -> R20,R21
-                 ; 0000 002F 
-                 ; 0000 0030     while(usDataLen--){
-                 ; 0000 0031         crc ^= *puchMsg++;
-                 ; 0000 0032 
-                 ; 0000 0033         for (i=0; i<8; i++){
-                 ; 0000 0034             flag = crc & 0x0001;
-                 ; 0000 0035             crc >>= 1;
-                 ; 0000 0036             if(flag) crc ^= POLYNORMIAL;
-                 ; 0000 0037         }
-                 ; 0000 0038     }
-                 ; 0000 0039     return crc;
-                 ; 0000 003A 
-                 ; 0000 003B }
+                +
+0000ca ef2f     +LDI R18 , LOW ( - 1 )
+0000cb ef3f     +LDI R19 , HIGH ( - 1 )
+                 	__GETWRN 18,19,-1
+                 ; 0000 0045 
+                 ; 0000 0046     while(usDataLen--){
+                 _0xF:
+0000cc 81ee      	LDD  R30,Y+6
+0000cd 81ff      	LDD  R31,Y+6+1
+0000ce 9731      	SBIW R30,1
+0000cf 83ee      	STD  Y+6,R30
+0000d0 83ff      	STD  Y+6+1,R31
+0000d1 9631      	ADIW R30,1
+0000d2 f0f9      	BREQ _0x11
+                 ; 0000 0047         crc ^= *puchMsg++;
+0000d3 85a8      	LDD  R26,Y+8
+0000d4 85b9      	LDD  R27,Y+8+1
+0000d5 91ed      	LD   R30,X+
+0000d6 87a8      	STD  Y+8,R26
+0000d7 87b9      	STD  Y+8+1,R27
+0000d8 e0f0      	LDI  R31,0
+                +
+0000d9 272e     +EOR R18 , R30
+0000da 273f     +EOR R19 , R31
+                 	__EORWRR 18,19,30,31
+                 ; 0000 0048 
+                 ; 0000 0049         for (i=0; i<8; i++){
+                +
+0000db e000     +LDI R16 , LOW ( 0 )
+0000dc e010     +LDI R17 , HIGH ( 0 )
+                 	__GETWRN 16,17,0
+                 _0x13:
+                +
+0000dd 3008     +CPI R16 , LOW ( 8 )
+0000de e0e0     +LDI R30 , HIGH ( 8 )
+0000df 071e     +CPC R17 , R30
+                 	__CPWRN 16,17,8
+0000e0 f484      	BRGE _0x14
+                 ; 0000 004A             flag = crc & 0x0001;
+0000e1 01f9      	MOVW R30,R18
+0000e2 70e1      	ANDI R30,LOW(0x1)
+0000e3 70f0      	ANDI R31,HIGH(0x1)
+0000e4 01af      	MOVW R20,R30
+                 ; 0000 004B             crc >>= 1;
+0000e5 9536      	LSR  R19
+0000e6 9527      	ROR  R18
+                 ; 0000 004C             if(flag) crc ^= POLYNORMIAL;
+0000e7 2e04      	MOV  R0,R20
+0000e8 2a05      	OR   R0,R21
+0000e9 f021      	BREQ _0x15
+0000ea e0e1      	LDI  R30,LOW(40961)
+0000eb eaf0      	LDI  R31,HIGH(40961)
+                +
+0000ec 272e     +EOR R18 , R30
+0000ed 273f     +EOR R19 , R31
+                 	__EORWRR 18,19,30,31
+                 ; 0000 004D         }
+                 _0x15:
+                +
+0000ee 5f0f     +SUBI R16 , LOW ( - 1 )
+0000ef 4f1f     +SBCI R17 , HIGH ( - 1 )
+                 	__ADDWRN 16,17,1
+0000f0 cfec      	RJMP _0x13
+                 _0x14:
+                 ; 0000 004E     }
+0000f1 cfda      	RJMP _0xF
+                 _0x11:
+                 ; 0000 004F     return crc;
+0000f2 01f9      	MOVW R30,R18
+0000f3 940e 017c 	CALL __LOADLOCR6
+0000f5 962a      	ADIW R28,10
+0000f6 9508      	RET
+                 ; 0000 0050 
+                 ; 0000 0051 }
                  ;
                  ;int RTU_WriteOperate(char device_address,int starting_address,int data)
-                 ; 0000 003E {
-                 ; 0000 003F     char protocol[8];
-                 ; 0000 0040     unsigned short crc16;
-                 ; 0000 0041     int i=0;
-                 ; 0000 0042     PACKET_BUFF_IDX = 0;
+                 ; 0000 0054 {
+                 _RTU_WriteOperate:
+                 ; 0000 0055     char protocol[8];
+                 ; 0000 0056     unsigned short crc16;
+                 ; 0000 0057     int i=0;
+                 ; 0000 0058     PACKET_BUFF_IDX = 0;
+0000f7 9728      	SBIW R28,8
+0000f8 940e 0177 	CALL __SAVELOCR4
                  ;	device_address -> Y+16
                  ;	starting_address -> Y+14
                  ;	data -> Y+12
                  ;	protocol -> Y+4
                  ;	crc16 -> R16,R17
                  ;	i -> R18,R19
-                 ; 0000 0043 
-                 ; 0000 0044     protocol[0]=device_address;
-                 ; 0000 0045     protocol[1]=0x06;
-                 ; 0000 0046     protocol[2]=((starting_address>>8)  & 0x00ff);
-                 ; 0000 0047     protocol[3]=((starting_address)     & 0x00ff);
-                 ; 0000 0048     protocol[4]=((data>>8)              & 0x00ff);
-                 ; 0000 0049     protocol[5]=((data)                 & 0x00ff);
-                 ; 0000 004A     protocol[6]=0;
-                 ; 0000 004B     protocol[7]=0;
-                 ; 0000 004C 
-                 ; 0000 004D     crc16 = CRC16(protocol, 6);
-                 ; 0000 004E 
-                 ; 0000 004F     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
-                 ; 0000 0050     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
-                 ; 0000 0051 
-                 ; 0000 0052 
-                 ; 0000 0053     for(i=0;i<8;i++)
-                 ; 0000 0054     {
-                 ; 0000 0055         putch_USART1(*(protocol+i));
-                 ; 0000 0056     }
-                 ; 0000 0057 }
+                +
+0000fa e020     +LDI R18 , LOW ( 0 )
+0000fb e030     +LDI R19 , HIGH ( 0 )
+                 	__GETWRN 18,19,0
+0000fc 2455      	CLR  R5
+                 ; 0000 0059 
+                 ; 0000 005A     protocol[0]=device_address;
+0000fd 89e8      	LDD  R30,Y+16
+0000fe 83ec      	STD  Y+4,R30
+                 ; 0000 005B     protocol[1]=0x06;
+0000ff e0e6      	LDI  R30,LOW(6)
+000100 83ed      	STD  Y+5,R30
+                 ; 0000 005C     protocol[2]=((starting_address>>8)  & 0x00ff);
+000101 85ee      	LDD  R30,Y+14
+000102 85ff      	LDD  R31,Y+14+1
+000103 940e 0170 	CALL __ASRW8
+000105 83ee      	STD  Y+6,R30
+                 ; 0000 005D     protocol[3]=((starting_address)     & 0x00ff);
+000106 85ee      	LDD  R30,Y+14
+000107 83ef      	STD  Y+7,R30
+                 ; 0000 005E     protocol[4]=((data>>8)              & 0x00ff);
+000108 85ec      	LDD  R30,Y+12
+000109 85fd      	LDD  R31,Y+12+1
+00010a 940e 0170 	CALL __ASRW8
+00010c 87e8      	STD  Y+8,R30
+                 ; 0000 005F     protocol[5]=((data)                 & 0x00ff);
+00010d 85ec      	LDD  R30,Y+12
+00010e 87e9      	STD  Y+9,R30
+                 ; 0000 0060     protocol[6]=0;
+00010f e0e0      	LDI  R30,LOW(0)
+000110 87ea      	STD  Y+10,R30
+                 ; 0000 0061     protocol[7]=0;
+000111 87eb      	STD  Y+11,R30
+                 ; 0000 0062 
+                 ; 0000 0063     crc16 = CRC16(protocol, 6);
+000112 01fe      	MOVW R30,R28
+000113 9634      	ADIW R30,4
+000114 93fa      	ST   -Y,R31
+000115 93ea      	ST   -Y,R30
+000116 e0e6      	LDI  R30,LOW(6)
+000117 e0f0      	LDI  R31,HIGH(6)
+000118 93fa      	ST   -Y,R31
+000119 93ea      	ST   -Y,R30
+00011a dfad      	RCALL _CRC16
+00011b 018f      	MOVW R16,R30
+                 ; 0000 0064 
+                 ; 0000 0065     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
+00011c 01f8      	MOVW R30,R16
+00011d 87ea      	STD  Y+10,R30
+                 ; 0000 0066     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
+                +
+00011e 871b     +STD Y + 11 , R17
+                 	__PUTBSR 17,11
+                 ; 0000 0067 
+                 ; 0000 0068 
+                 ; 0000 0069     for(i=0;i<8;i++)
+                +
+00011f e020     +LDI R18 , LOW ( 0 )
+000120 e030     +LDI R19 , HIGH ( 0 )
+                 	__GETWRN 18,19,0
+                 _0x17:
+                +
+000121 3028     +CPI R18 , LOW ( 8 )
+000122 e0e0     +LDI R30 , HIGH ( 8 )
+000123 073e     +CPC R19 , R30
+                 	__CPWRN 18,19,8
+000124 f454      	BRGE _0x18
+                 ; 0000 006A     {
+                 ; 0000 006B         putch_USART0(*(protocol+i));
+000125 01de      	MOVW R26,R28
+000126 9614      	ADIW R26,4
+000127 0fa2      	ADD  R26,R18
+000128 1fb3      	ADC  R27,R19
+000129 91ec      	LD   R30,X
+00012a 93ea      	ST   -Y,R30
+00012b df96      	RCALL _putch_USART0
+                 ; 0000 006C     }
+                +
+00012c 5f2f     +SUBI R18 , LOW ( - 1 )
+00012d 4f3f     +SBCI R19 , HIGH ( - 1 )
+                 	__ADDWRN 18,19,1
+00012e cff2      	RJMP _0x17
+                 _0x18:
+                 ; 0000 006D }
+00012f 940e 017e 	CALL __LOADLOCR4
+000131 9661      	ADIW R28,17
+000132 9508      	RET
                  ;
-                 ;interrupt [USART1_RXC] void usart1_rxc(void)
-                 ; 0000 005A {
-                 _usart1_rxc:
-0000af 93aa      	ST   -Y,R26
-0000b0 93ba      	ST   -Y,R27
-0000b1 93ea      	ST   -Y,R30
-0000b2 b7ef      	IN   R30,SREG
-0000b3 93ea      	ST   -Y,R30
-                 ; 0000 005B     PACKET_BUFF[PACKET_BUFF_IDX] = UDR1;
-0000b4 2da5      	MOV  R26,R5
-0000b5 e0b0      	LDI  R27,0
-0000b6 50a0      	SUBI R26,LOW(-_PACKET_BUFF)
-0000b7 4fbb      	SBCI R27,HIGH(-_PACKET_BUFF)
-0000b8 91e0 009c 	LDS  R30,156
-0000ba 93ec      	ST   X,R30
-                 ; 0000 005C     PACKET_BUFF_IDX++;
-0000bb 9453      	INC  R5
-                 ; 0000 005D }
-0000bc 91e9      	LD   R30,Y+
-0000bd bfef      	OUT  SREG,R30
-0000be 91e9      	LD   R30,Y+
-0000bf 91b9      	LD   R27,Y+
-0000c0 91a9      	LD   R26,Y+
-0000c1 9518      	RETI
+                 ;interrupt [USART0_RXC] void usart0_rxc(void)
+                 ; 0000 0070 {
+                 _usart0_rxc:
+000133 93aa      	ST   -Y,R26
+000134 93ba      	ST   -Y,R27
+000135 93ea      	ST   -Y,R30
+000136 b7ef      	IN   R30,SREG
+000137 93ea      	ST   -Y,R30
+                 ; 0000 0071     PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+000138 2da5      	MOV  R26,R5
+000139 e0b0      	LDI  R27,0
+00013a 50a0      	SUBI R26,LOW(-_PACKET_BUFF)
+00013b 4fbb      	SBCI R27,HIGH(-_PACKET_BUFF)
+00013c b1ec      	IN   R30,0xC
+00013d 93ec      	ST   X,R30
+                 ; 0000 0072     PACKET_BUFF_IDX++;
+00013e 9453      	INC  R5
+                 ; 0000 0073 }
+00013f 91e9      	LD   R30,Y+
+000140 bfef      	OUT  SREG,R30
+000141 91e9      	LD   R30,Y+
+000142 91b9      	LD   R27,Y+
+000143 91a9      	LD   R26,Y+
+000144 9518      	RETI
                  ;
                  ;void main(void)
-                 ; 0000 0060 {
+                 ; 0000 0076 {
                  _main:
-                 ; 0000 0061     usart_init(bps_115200);
-0000c2 e0e7      	LDI  R30,LOW(7)
-0000c3 e0f0      	LDI  R31,HIGH(7)
-0000c4 93fa      	ST   -Y,R31
-0000c5 93ea      	ST   -Y,R30
-0000c6 dfb7      	RCALL _usart_init
-                 ; 0000 0062     SREG |= 0x80;
-0000c7 9478      	BSET 7
-                 ; 0000 0063 
-                 ; 0000 0064     while(1)
-                 _0x13:
-                 ; 0000 0065     {
-                 ; 0000 0066         //delay_ms(500);
-                 ; 0000 0067         if(PACKET_BUFF_IDX != 0)
-0000c8 2055      	TST  R5
-0000c9 f029      	BREQ _0x16
-                 ; 0000 0068             puts_USART1(PACKET_BUFF);
-0000ca e0e0      	LDI  R30,LOW(_PACKET_BUFF)
-0000cb e0f5      	LDI  R31,HIGH(_PACKET_BUFF)
-0000cc 93fa      	ST   -Y,R31
-0000cd 93ea      	ST   -Y,R30
-0000ce dfd0      	RCALL _puts_USART1
-                 ; 0000 0069         //RTU_WriteOperate(0x01,0x0079,(int)(0));
-                 ; 0000 006A     }
-                 _0x16:
-0000cf cff8      	RJMP _0x13
-                 ; 0000 006B }
-                 _0x17:
-0000d0 cfff      	RJMP _0x17
+                 ; 0000 0077     unsigned char check_cnt = 0;
+                 ; 0000 0078     usart_init(bps_115200);
+                 ;	check_cnt -> R17
+000145 e010      	LDI  R17,0
+000146 e0e7      	LDI  R30,LOW(7)
+000147 e0f0      	LDI  R31,HIGH(7)
+000148 93fa      	ST   -Y,R31
+000149 93ea      	ST   -Y,R30
+00014a df33      	RCALL _usart_init
+                 ; 0000 0079     SREG |= 0x80;
+00014b 9478      	BSET 7
+                 ; 0000 007A 
+                 ; 0000 007B     while(1)
+                 _0x19:
+                 ; 0000 007C     {
+                 ; 0000 007D         RTU_WriteOperate(0x01,0x0079,(int)(1000));
+00014c e0e1      	LDI  R30,LOW(1)
+00014d 93ea      	ST   -Y,R30
+00014e e7e9      	LDI  R30,LOW(121)
+00014f e0f0      	LDI  R31,HIGH(121)
+000150 93fa      	ST   -Y,R31
+000151 93ea      	ST   -Y,R30
+000152 eee8      	LDI  R30,LOW(1000)
+000153 e0f3      	LDI  R31,HIGH(1000)
+000154 93fa      	ST   -Y,R31
+000155 93ea      	ST   -Y,R30
+000156 dfa0      	RCALL _RTU_WriteOperate
+                 ; 0000 007E         delay_ms(100);
+000157 e6e4      	LDI  R30,LOW(100)
+000158 e0f0      	LDI  R31,HIGH(100)
+000159 93fa      	ST   -Y,R31
+00015a 93ea      	ST   -Y,R30
+00015b 940e 0164 	CALL _delay_ms
+                 ; 0000 007F         puts_USART1(PACKET_BUFF);
+00015d e0e0      	LDI  R30,LOW(_PACKET_BUFF)
+00015e e0f5      	LDI  R31,HIGH(_PACKET_BUFF)
+00015f 93fa      	ST   -Y,R31
+000160 93ea      	ST   -Y,R30
+000161 df50      	RCALL _puts_USART1
+                 ; 0000 0080         //RTU_WriteOperate(0x01,0x0078,(int)(1));
+                 ; 0000 0081         //delay_ms(300);
+                 ; 0000 0082     }
+000162 cfe9      	RJMP _0x19
+                 ; 0000 0083 }
+                 _0x1C:
+000163 cfff      	RJMP _0x1C
                  
                  	.DSEG
                  _PACKET_BUFF:
@@ -1426,12 +1622,57 @@ C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1107): warning: .cseg .db misal
                  	.CSEG
                  
                  	.CSEG
+                 _delay_ms:
+000164 91e9      	ld   r30,y+
+000165 91f9      	ld   r31,y+
+000166 9630      	adiw r30,0
+000167 f039      	breq __delay_ms1
+                 __delay_ms0:
+                +
+000168 e686     +LDI R24 , LOW ( 0xE66 )
+000169 e09e     +LDI R25 , HIGH ( 0xE66 )
+                +__DELAY_USW_LOOP :
+00016a 9701     +SBIW R24 , 1
+00016b f7f1     +BRNE __DELAY_USW_LOOP
+                 	__DELAY_USW 0xE66
+00016c 95a8      	wdr
+00016d 9731      	sbiw r30,1
+00016e f7c9      	brne __delay_ms0
+                 __delay_ms1:
+00016f 9508      	ret
+                 
                  __ASRW8:
-0000d1 2fef      	MOV  R30,R31
-0000d2 27ff      	CLR  R31
-0000d3 fde7      	SBRC R30,7
-0000d4 efff      	SER  R31
-0000d5 9508      	RET
+000170 2fef      	MOV  R30,R31
+000171 27ff      	CLR  R31
+000172 fde7      	SBRC R30,7
+000173 efff      	SER  R31
+000174 9508      	RET
+                 
+                 __SAVELOCR6:
+000175 935a      	ST   -Y,R21
+                 __SAVELOCR5:
+000176 934a      	ST   -Y,R20
+                 __SAVELOCR4:
+000177 933a      	ST   -Y,R19
+                 __SAVELOCR3:
+000178 932a      	ST   -Y,R18
+                 __SAVELOCR2:
+000179 931a      	ST   -Y,R17
+00017a 930a      	ST   -Y,R16
+00017b 9508      	RET
+                 
+                 __LOADLOCR6:
+00017c 815d      	LDD  R21,Y+5
+                 __LOADLOCR5:
+00017d 814c      	LDD  R20,Y+4
+                 __LOADLOCR4:
+00017e 813b      	LDD  R19,Y+3
+                 __LOADLOCR3:
+00017f 812a      	LDD  R18,Y+2
+                 __LOADLOCR2:
+000180 8119      	LDD  R17,Y+1
+000181 8108      	LD   R16,Y
+000182 9508      	RET
                  
                  ;END OF CODE MARKER
                  __END_OF_CODE:
@@ -1452,40 +1693,40 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 ATmega128 register use summary:
-r0 :   4 r1 :   1 r2 :   0 r3 :   0 r4 :   0 r5 :   4 r6 :   0 r7 :   0 
+r0 :   6 r1 :   1 r2 :   0 r3 :   0 r4 :   0 r5 :   4 r6 :   0 r7 :   0 
 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
-r16:   0 r17:   0 r18:   0 r19:   0 r20:   0 r21:   0 r22:   2 r23:   0 
-r24:   8 r25:   2 r26:   8 r27:   8 r28:   3 r29:   1 r30:  52 r31:  15 
-x  :   5 y  :  23 z  :   7 
-Registers used: 15 out of 35 (42.9%)
+r16:   7 r17:   7 r18:  13 r19:  11 r20:   4 r21:   3 r22:   2 r23:   0 
+r24:  10 r25:   3 r26:  13 r27:  11 r28:   8 r29:   1 r30: 119 r31:  35 
+x  :   7 y  :  78 z  :   7 
+Registers used: 21 out of 35 (60.0%)
 
 ATmega128 instruction use summary:
-.lds  :   0 .lds.l:   0 .sts  :   0 .sts.l:   0 adc   :   0 add   :   0 
-adiw  :   3 and   :   0 andi  :   2 asr   :   0 bclr  :   0 bld   :   0 
-brbc  :   0 brbs  :   0 brcc  :   0 brcs  :   0 break :   0 breq  :   4 
-brge  :   0 brhc  :   0 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 
-brlt  :   0 brmi  :   0 brne  :   3 brpl  :   0 brsh  :   0 brtc  :   0 
-brts  :   0 brvc  :   0 brvs  :   0 bset  :   1 bst   :   0 call  :   1 
+.lds  :   0 .lds.l:   0 .sts  :   0 .sts.l:   0 adc   :   1 add   :   1 
+adiw  :   9 and   :   0 andi  :   5 asr   :   0 bclr  :   0 bld   :   0 
+brbc  :   0 brbs  :   0 brcc  :   0 brcs  :   0 break :   0 breq  :   6 
+brge  :   2 brhc  :   0 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 
+brlt  :   0 brmi  :   0 brne  :   5 brpl  :   0 brsh  :   0 brtc  :   0 
+brts  :   0 brvc  :   0 brvs  :   0 bset  :   1 bst   :   0 call  :   9 
 cbi   :   0 cbr   :   0 clc   :   0 clh   :   0 cli   :   1 cln   :   0 
-clr   :   4 cls   :   0 clt   :   0 clv   :   0 clz   :   0 com   :   0 
-cp    :   0 cpc   :   0 cpi   :   1 cpse  :   0 dec   :   1 des   :   0 
-elpm  :   0 eor   :   0 fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 
-ijmp  :   0 in    :   1 inc   :   1 jmp   :  36 ld    :  10 ldd   :   3 
-ldi   :  22 lds   :   3 lpm   :   7 lsl   :   0 lsr   :   0 mov   :   2 
-movw  :   3 mul   :   0 muls  :   0 mulsu :   0 neg   :   0 nop   :   0 
-or    :   0 ori   :   0 out   :   9 pop   :   0 push  :   0 rcall :   3 
-ret   :   3 reti  :   1 rjmp  :   5 rol   :   0 ror   :   0 sbc   :   0 
-sbci  :   1 sbi   :   0 sbic  :   0 sbis  :   0 sbiw  :   3 sbr   :   0 
+clr   :   5 cls   :   0 clt   :   0 clv   :   0 clz   :   0 com   :   0 
+cp    :   0 cpc   :   2 cpi   :   3 cpse  :   0 dec   :   1 des   :   0 
+elpm  :   0 eor   :   4 fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 
+ijmp  :   0 in    :   2 inc   :   1 jmp   :  36 ld    :  18 ldd   :  20 
+ldi   :  52 lds   :   3 lpm   :   7 lsl   :   0 lsr   :   1 mov   :   3 
+movw  :  10 mul   :   0 muls  :   0 mulsu :   0 neg   :   0 nop   :   0 
+or    :   1 ori   :   0 out   :  13 pop   :   0 push  :   0 rcall :   6 
+ret   :   8 reti  :   1 rjmp  :  10 rol   :   0 ror   :   1 sbc   :   0 
+sbci  :   3 sbi   :   0 sbic  :   0 sbis  :   1 sbiw  :   7 sbr   :   0 
 sbrc  :   1 sbrs  :   0 sec   :   0 seh   :   0 sei   :   0 sen   :   0 
 ser   :   1 ses   :   0 set   :   0 sev   :   0 sez   :   0 sleep :   0 
-spm   :   0 st    :  14 std   :   1 sts   :   8 sub   :   0 subi  :   1 
-swap  :   0 tst   :   1 wdr   :   0 
-Instructions used: 34 out of 117 (29.1%)
+spm   :   0 st    :  32 std   :  15 sts   :  11 sub   :   0 subi  :   3 
+swap  :   0 tst   :   0 wdr   :   1 
+Instructions used: 43 out of 117 (36.8%)
 
 ATmega128 memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0001ac    418     10    428  131072   0.3%
+[.cseg] 0x000000 0x000306    764     10    774  131072   0.6%
 [.dseg] 0x000100 0x000564      0    100    100    4351   2.3%
 [.eseg] 0x000000 0x000000      0      0      0    4096   0.0%
 
