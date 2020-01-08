@@ -5,6 +5,8 @@
 
 #define POLYNORMIAL 0xA001
 
+#define CHARTER3_5 25
+
 unsigned char PACKET_BUFF[100] = {0,};
 unsigned char PACKET_BUFF_IDX = 0;
 
@@ -28,6 +30,15 @@ void usart0_init(int bps)
 
     UBRR0H = (unsigned char)((bps>>8)  & 0x00ff);
     UBRR0L = (unsigned char)(bps & 0x00ff);
+}
+
+void timer2_init(void)
+{
+    //TIMER2
+    TCCR2 = (1<<WGM21)|(1<<CS22)|(1<<CS20);// CTC모드, 1024분주;
+
+    OCR2 = 30; 
+    //TIMSK = (1<<OCIE2);
 }
 
 void putch_USART1(char data)
@@ -94,7 +105,7 @@ int RTU_WriteOperate0(char device_address,int starting_address,int data)
     char protocol[8];
     unsigned short crc16;
     int i=0;
-    PACKET_BUFF_IDX = 0;
+    //PACKET_BUFF_IDX = 0;
 
     protocol[0]=device_address;
     protocol[1]=0x06;
@@ -122,7 +133,7 @@ int RTU_WriteOperate1(char device_address,int starting_address,int data)
     char protocol[8];
     unsigned short crc16;
     int i=0;
-    PACKET_BUFF_IDX = 0;
+   // PACKET_BUFF_IDX = 0;
 
     protocol[0]=device_address;
     protocol[1]=0x06;
@@ -145,48 +156,95 @@ int RTU_WriteOperate1(char device_address,int starting_address,int data)
     }
 }
 
+int RTU_ReedOperate0(char device_address,int starting_address,int data)
+{
+    char protocol[8];
+    unsigned short crc16;
+    int i=0;
+    //PACKET_BUFF_IDX = 0;
+
+    protocol[0]=device_address;
+    protocol[1]=0x03;
+    protocol[2]=((starting_address>>8)  & 0x00ff);
+    protocol[3]=((starting_address)     & 0x00ff);
+    protocol[4]=((data>>8)              & 0x00ff);
+    protocol[5]=((data)                 & 0x00ff);
+    protocol[6]=0;
+    protocol[7]=0;
+    
+    crc16 = CRC16(protocol, 6);
+    
+    protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
+    protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
+               
+    
+    for(i=0;i<8;i++)
+    {
+        putch_USART0(*(protocol+i));
+    }
+}
+
 interrupt [USART0_RXC] void usart0_rxc(void)
 {
-    PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
-    PACKET_BUFF_IDX++;
+    if(TCNT0 < CHARTER3_5 || PACKET_BUFF_IDX == 0)
+    {
+        PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+        PACKET_BUFF_IDX++;
+        TCNT0 = 0;
+        PORTB.1 = ~PORTB.1;
+    }
+    else PACKET_BUFF_IDX = 0;
 }
 
 interrupt [USART1_RXC] void usart1_rxc(void)
 {
-    PACKET_BUFF[PACKET_BUFF_IDX] = UDR1;
-    PACKET_BUFF_IDX++;
+    if(TCNT0 < CHARTER3_5 || PACKET_BUFF_IDX == 0){
+        PACKET_BUFF[PACKET_BUFF_IDX] = UDR1;
+        PACKET_BUFF_IDX++;
+        TCNT0 = 0;
+    }
+    else PACKET_BUFF_IDX = 0;
 }
 
 void main(void)
 {
     usart1_init(bps_115200);
     usart0_init(bps_115200);
+    timer2_init();
     SREG |= 0x80;
     
+    DDRB.1 = 1;
     while(1)
     {
         // RTU_WriteOperate1(0x01,0x0079,(int)(1000));
         // delay_ms(100);
         //RTU_WriteOperate1(0x01,0x0078,(int)(1));
         //delay_ms(100);
-        RTU_WriteOperate0(0x01,0x0079,(int)(1000));
-        delay_ms(100);
-        puts_USART1(PACKET_BUFF);
-        delay_ms(100);
         
-        RTU_WriteOperate0(0x02,0x0079,(int)(-1000));
+        RTU_WriteOperate0(0x01,(unsigned int)121,(int)(1000));
         delay_ms(100);
         puts_USART1(PACKET_BUFF);
         delay_ms(100);
 
-        RTU_WriteOperate0(0x01,0x0078,(int)(1));
+        RTU_ReedOperate0(0x01,(unsigned int)120,(int)(1));
         delay_ms(100);
         puts_USART1(PACKET_BUFF);
         delay_ms(100);
         
-        RTU_WriteOperate0(0x02,0x0078,(int)(1));
-        delay_ms(100);
-        puts_USART1(PACKET_BUFF);
-        delay_ms(100);
+
+        // RTU_WriteOperate0(0x02,0x0079,(int)(-1000));
+        // delay_ms(100);
+        // puts_USART1(PACKET_BUFF);
+        // delay_ms(100);
+
+        // RTU_WriteOperate0(0x01,0x0078,(int)(1));
+        // delay_ms(100);
+        // puts_USART1(PACKET_BUFF);
+        // delay_ms(100);
+        
+        // RTU_WriteOperate0(0x02,0x0078,(int)(1));
+        // delay_ms(100);
+        // puts_USART1(PACKET_BUFF);
+        // delay_ms(100);
     }
 }
