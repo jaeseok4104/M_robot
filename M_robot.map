@@ -2,6 +2,7 @@ RAM Allocation
 Variable                                                          Address   Size
 --------------------------------------------------------------------------------
 PACKET_BUFF                                                       0x0500     100
+VELOCITY_BUFF                                                     0x0564      20
 
 EEPROM Allocation
 Variable                                                          Address   Size
@@ -10,4 +11,7 @@ Variable                                                          Address   Size
 Register Allocation
 Variable                                                          Register  Size
 --------------------------------------------------------------------------------
-PACKET_BUFF_IDX                                                   R5           1
+TIMER2_OVERFLOW                                                   R5           1
+PACKET_BUFF_IDX                                                   R4           1
+TIMER0_OVERFLOW                                                   R7           1
+VELOCITY_BUFF_IDX                                                 R6           1
