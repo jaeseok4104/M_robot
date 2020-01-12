@@ -63,18 +63,18 @@ void putch_USART1(char data)
 }
 
 //USART 문자열 송신
-void puts_USART1(char *str)
+void puts_USART1(char *str,char IDX)
 {
     unsigned char i = 0;
 
-    for(i = 0;i<PACKET_BUFF_IDX-1;i++)
+    for(i = 0;i<IDX-1;i++)
     {
         putch_USART1(*(str+i));
     }
 
-    for(i = 0; i<PACKET_BUFF_IDX ; i++)
+    for(i = 0; i<IDX; i++)
     {
-        PACKET_BUFF[i] = 0;
+        *(str+i) = 0;
     }
 }
 
@@ -84,18 +84,18 @@ void putch_USART0(char data)
     UDR0 = data;
 }
 
-void puts_USART0(char *str)
+void puts_USART0(char *str,char IDX)
 {
-    PACKET_BUFF[PACKET_BUFF_IDX] = 0;
-    
-    for(i = 0;i<PACKET_BUFF_IDX-1;i++)
+    //PACKET_BUFF[PACKET_BUFF_IDX] = 0;
+    unsigned char i = 0;
+    for(i = 0;i<IDX-1;i++)
     {
         putch_USART1(*(str+i));
     }
 
-    for(i = 0; i<PACKET_BUFF_IDX ; i++)
+    for(i = 0; i<IDX; i++)
     {
-        PACKET_BUFF[i] = 0;
+        *(str+i) = 0;
     }
 }
 
@@ -115,7 +115,6 @@ unsigned short CRC16(unsigned char *puchMsg, int usDataLen)
         }
     }
     return crc;
-
 }
 
 int RTU_WriteOperate0(char device_address,int starting_address,int data)
@@ -204,23 +203,43 @@ int RTU_ReedOperate0(char device_address,int starting_address,int data)
 
 interrupt [USART0_RXC] void usart0_rxc(void)
 {
-    if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
-    {
-        PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
-        PACKET_BUFF_IDX++;
-        TCNT2 = 0;
-        TIMER2_OVERFLOW = 0;
-        //PORTB.1 = ~PORTB.1;
-    }
-    else {
+    unsigned char i = 0;
+
+    i = UDR0;
+    if(i == '<'){
         PACKET_BUFF_IDX = 0;
-        PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+        PACKET_BUFF[PACKET_BUFF_IDX] = i;
         PACKET_BUFF_IDX++;
-        TCNT2 = 0;
-        //PORTB.1 = ~PORTB.1;
-        TIMER2_OVERFLOW = 0;
+    }
+    else if(i == '>'){
+        PACKET_BUFF[PACKET_BUFF_IDX] = i;
+        PACKET_BUFF_IDX+=2;
+    }
+    else{
+        PACKET_BUFF[PACKET_BUFF_IDX] = i;
+        PACKET_BUFF_IDX++;
     }
 }
+
+// interrupt [USART0_RXC] void usart0_rxc(void)
+// {
+//     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
+//     {
+//         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+//         PACKET_BUFF_IDX++;
+//         TCNT2 = 0;
+//         TIMER2_OVERFLOW = 0;
+//         //PORTB.1 = ~PORTB.1;
+//     }
+//     else {
+//         PACKET_BUFF_IDX = 0;
+//         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+//         PACKET_BUFF_IDX++;
+//         TCNT2 = 0;
+//         //PORTB.1 = ~PORTB.1;
+//         TIMER2_OVERFLOW = 0;
+//     }
+// }
 
 interrupt [USART1_RXC] void usart1_rxc(void)
 {
@@ -265,11 +284,14 @@ void main(void)
     delay_ms(5000);
     while(1)
     {
-        sscanf(VELOCITY_BUFF,"%d,%d", &velocity_R, &velocity_L);
+        //sscanf(VELOCITY_BUFF,"%d,%d", &velocity_R, &velocity_L);
 
-        sprintf(BUFF,"%d,%d", velocity_R, velocity_L);
+        sscanf(PACKET_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
+        
+        sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 
-        puts_USART1(BUFF);
+        puts_USART1(BUFF,PACKET_BUFF_IDX);
+        delay_ms(200);
         // if(velocity_R != 0 && velocity_L != 0)
         // {
         //     if(velocity_R >0 && velocity_L>0)
