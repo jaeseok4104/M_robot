@@ -201,62 +201,82 @@ int RTU_ReedOperate0(char device_address,int starting_address,int data)
     }
 }
 
-interrupt [USART0_RXC] void usart0_rxc(void)
-{
-    unsigned char i = 0;
-
-    i = UDR0;
-    if(i == '<'){
-        PACKET_BUFF_IDX = 0;
-        PACKET_BUFF[PACKET_BUFF_IDX] = i;
-        PACKET_BUFF_IDX++;
-    }
-    else if(i == '>'){
-        PACKET_BUFF[PACKET_BUFF_IDX] = i;
-        PACKET_BUFF_IDX+=2;
-    }
-    else{
-        PACKET_BUFF[PACKET_BUFF_IDX] = i;
-        PACKET_BUFF_IDX++;
-    }
-}
-
 // interrupt [USART0_RXC] void usart0_rxc(void)
 // {
-//     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
-//     {
-//         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
-//         PACKET_BUFF_IDX++;
-//         TCNT2 = 0;
-//         TIMER2_OVERFLOW = 0;
-//         //PORTB.1 = ~PORTB.1;
-//     }
-//     else {
+//     unsigned char i = 0;
+
+//     i = UDR0;
+//     if(i == '<'){
 //         PACKET_BUFF_IDX = 0;
-//         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+//         PACKET_BUFF[PACKET_BUFF_IDX] = i;
 //         PACKET_BUFF_IDX++;
-//         TCNT2 = 0;
-//         //PORTB.1 = ~PORTB.1;
-//         TIMER2_OVERFLOW = 0;
+//     }
+//     else if(i == '>'){
+//         PACKET_BUFF[PACKET_BUFF_IDX] = i;
+//         PACKET_BUFF_IDX+=2;
+//     }
+//     else{
+//         PACKET_BUFF[PACKET_BUFF_IDX] = i;
+//         PACKET_BUFF_IDX++;
 //     }
 // }
 
-interrupt [USART1_RXC] void usart1_rxc(void)
+interrupt [USART0_RXC] void usart0_rxc(void)
 {
-    if(((TCNT0 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || VELOCITY_BUFF_IDX == 0)
+    if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
     {
-        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = UDR1;
-        TCNT0 = 0;
+        PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+        PACKET_BUFF_IDX++;
+        TCNT2 = 0;
+        TIMER2_OVERFLOW = 0;
         //PORTB.1 = ~PORTB.1;
     }
     else {
-        VELOCITY_BUFF_IDX = 0;
-        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = UDR0;
-        VELOCITY_BUFF_IDX++;
-        TCNT0 = 0;
+        PACKET_BUFF_IDX = 0;
+        PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+        PACKET_BUFF_IDX++;
+        TCNT2 = 0;
         //PORTB.1 = ~PORTB.1;
+        TIMER2_OVERFLOW = 0;
     }
 }
+
+interrupt [USART1_RXC] void usart1_rxc(void)
+{
+    unsigned char i = 0;
+
+    i = UDR1;
+    if(i == '<'){
+        VELOCITY_BUFF_IDX = 0;
+        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+        VELOCITY_BUFF_IDX++;
+    }
+    else if(i == '>'){
+        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+        VELOCITY_BUFF_IDX+=2;
+    }
+    else{
+        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+        VELOCITY_BUFF_IDX++;
+    }
+}
+
+// interrupt [USART1_RXC] void usart1_rxc(void)
+// {
+//     if(((TCNT0 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || VELOCITY_BUFF_IDX == 0)
+//     {
+//         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = UDR1;
+//         TCNT0 = 0;
+//         //PORTB.1 = ~PORTB.1;
+//     }
+//     else {
+//         VELOCITY_BUFF_IDX = 0;
+//         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = UDR0;
+//         VELOCITY_BUFF_IDX++;
+//         TCNT0 = 0;
+//         //PORTB.1 = ~PORTB.1;
+//     }
+//}
 
 interrupt [TIM2_COMP] void timer2_comp(void)
 {
@@ -270,9 +290,9 @@ interrupt [TIM0_COMP] void timer0_comp(void)
 
 void main(void)
 {
-    int velocity_R = 0;
-    int velocity_L = 0;
-    unsigned char BUFF[20] = {0,};
+    float velocity_R = 0;
+    float velocity_L = 0 ;
+    unsigned char BUFF[100] = {0,};
 
     usart1_init(bps_115200);
     usart0_init(bps_115200);
@@ -284,59 +304,59 @@ void main(void)
     delay_ms(5000);
     while(1)
     {
-        //sscanf(VELOCITY_BUFF,"%d,%d", &velocity_R, &velocity_L);
+        sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
 
-        sscanf(PACKET_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
+        //sscanf(PACKET_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
         
-        sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
+        //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 
-        puts_USART1(BUFF,PACKET_BUFF_IDX);
+        //puts_USART1(BUFF,20);
         delay_ms(200);
-        // if(velocity_R != 0 && velocity_L != 0)
-        // {
-        //     if(velocity_R >0 && velocity_L>0)
-        //     {
-        //         velocity_R = velocity_R + 300;
-        //         velocity_L = velocity_L + 300;
-        //     }
+        if(velocity_R != 0 && velocity_L != 0)
+        {
+            if(velocity_R >0 && velocity_L>0)
+            {
+                velocity_R = velocity_R + 300;
+                velocity_L = velocity_L + 300;
+            }
             
-        //     if(velocity_R <0 && velocity_L>0)
-        //     {
-        //         velocity_R = velocity_R - 300;
-        //         velocity_L = velocity_L + 300;
-        //     }
+            if(velocity_R <0 && velocity_L>0)
+            {
+                velocity_R = velocity_R - 300;
+                velocity_L = velocity_L + 300;
+            }
             
-        //     if(velocity_R <0 && velocity_L<0)
-        //     {
-        //         velocity_R = velocity_R - 300;
-        //         velocity_L = velocity_L - 300;
-        //     }
+            if(velocity_R <0 && velocity_L<0)
+            {
+                velocity_R = velocity_R - 300;
+                velocity_L = velocity_L - 300;
+            }
             
-        //     if(velocity_R >0 && velocity_L<0)
-        //     {
-        //         velocity_R = velocity_R + 300;
-        //         velocity_L = velocity_L - 300;
-        //     }
-        // RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-        // delay_ms(50);
+            if(velocity_R >0 && velocity_L<0)
+            {
+                velocity_R = velocity_R + 300;
+                velocity_L = velocity_L - 300;
+            }
+            RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+            delay_ms(50);
 
-        // RTU_WriteOperate0(L,(unsigned int)121,(int)(velocity_L));
-        // delay_ms(50);
+            RTU_WriteOperate0(L,(unsigned int)121,(int)(velocity_L));
+            delay_ms(50);
 
-        // RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
-        // delay_ms(50);
+            RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
+            delay_ms(50);
 
-        // RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
-        // delay_ms(50);
-        // }
-        // else
-        // {
-        //     RTU_WriteOperate0(R,(unsigned int)120,(int)(2));
-        //     delay_ms(50);
+            RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
+            delay_ms(50);
+        }
+        else
+        {
+            RTU_WriteOperate0(R,(unsigned int)120,(int)(2));
+            delay_ms(50);
 
-        //     RTU_WriteOperate0(L,(unsigned int)120,(int)(2));
-        //     delay_ms(50);
-        // }
+            RTU_WriteOperate0(L,(unsigned int)120,(int)(2));
+            delay_ms(50);
+        }
         
     }
 }
