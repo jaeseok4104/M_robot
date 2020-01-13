@@ -18,6 +18,7 @@ unsigned char PACKET_BUFF_IDX = 0;
 unsigned char TIMER0_OVERFLOW = 0;
 unsigned char VELOCITY_BUFF[20] = {0,};
 unsigned char VELOCITY_BUFF_IDX = 0;
+unsigned char CHECK_GETS = 0;
 
 void usart1_init(int bps)
 {
@@ -67,7 +68,7 @@ void puts_USART1(char *str,char IDX)
 {
     unsigned char i = 0;
 
-    for(i = 0;i<IDX-1;i++)
+    for(i = 0;i<IDX;i++)
     {
         putch_USART1(*(str+i));
     }
@@ -244,16 +245,17 @@ interrupt [USART0_RXC] void usart0_rxc(void)
 interrupt [USART1_RXC] void usart1_rxc(void)
 {
     unsigned char i = 0;
-
     i = UDR1;
     if(i == '<'){
         VELOCITY_BUFF_IDX = 0;
         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
         VELOCITY_BUFF_IDX++;
+        CHECK_GETS = 1;
     }
     else if(i == '>'){
         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
-        VELOCITY_BUFF_IDX+=2;
+        VELOCITY_BUFF_IDX++;
+        CHECK_GETS = 0;
     }
     else{
         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
@@ -279,26 +281,6 @@ interrupt [USART1_RXC] void usart1_rxc(void)
 
 //     }
 // }
-
-interrupt [USART1_RXC] void usart1_rxc(void)
-{
-    unsigned char i = 0;
-
-    i = UDR1;
-    if(i == '<'){
-        VELOCITY_BUFF_IDX = 0;
-        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
-        VELOCITY_BUFF_IDX++;
-    }
-    else if(i == '>'){
-        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
-        VELOCITY_BUFF_IDX+=2;
-    }
-    else{
-        VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
-        VELOCITY_BUFF_IDX++;
-    }
-}
 
 // interrupt [USART1_RXC] void usart1_rxc(void)
 // {
@@ -343,50 +325,26 @@ void main(void)
     delay_ms(5000);
     while(1)
     {
-        sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
-        
-        if(velocity_R != 0 && velocity_L != 0)
+        if(CHECK_GETS == 0)
         {
-            if(velocity_R >0 && velocity_L>0)
-            {
-                velocity_R = velocity_R + 300;
-                velocity_L = velocity_L + 300;
-            }
-            
-            if(velocity_R <0 && velocity_L>0)
-            {
-                velocity_R = velocity_R - 300;
-                velocity_L = -velocity_L + 300;
-            }
-            
-            if(velocity_R <0 && velocity_L<0)
-            {
-                velocity_R = velocity_R - 300;
-                velocity_L = velocity_L - 300;
-            }
-            
-            if(velocity_R >0 && velocity_L<0)
-            {
-                velocity_R = velocity_R + 300;
-                velocity_L = velocity_L - 300;
-            }
+            sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
+            //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 
-        }
-        // sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
+            // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
+            // delay_ms(50);
 
-        // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-        // delay_ms(200); 
-        RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-        delay_ms(5);
+            RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+            delay_ms(5);
 
-        RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-        delay_ms(5);
+            RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
+            delay_ms(5);
 
-        RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
-        delay_ms(5);
+            RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
+            delay_ms(5);
 
-        RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
-        delay_ms(5);
+            RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
+            delay_ms(5);
+        } 
 
 ///////////////////////////멈추는거 일단제외////////////////////////
         // else
