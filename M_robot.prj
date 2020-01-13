@@ -116,7 +116,11 @@ WarningUnknownPragma=1
 LinkerWarnings=1
 DebugBootLoader=0
 WatchAVR8LAutoVariables=0
+<<<<<<< HEAD
 Build=121
+=======
+Build=131
+>>>>>>> test
 UseEEPROMLocation0=1
 IncludePath0=
 IncludePath1=
@@ -266,7 +270,7 @@ UserProgWorkDir=
 Files=1
 F1=Main.c
 [Bookmarks1]
-TimeStamp=1345107755
+TimeStamp=1345152265
 Row=0
 Column=0
 ScrollPosX=0

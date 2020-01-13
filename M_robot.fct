@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 main DSTACK_USAGE:108 DSTACK_LEVEL:108 FILE:"Main.c" LINE:291
 sscanf DSTACK_USAGE:9 DSTACK_LEVEL:117 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1815
 _scanf DSTACK_USAGE:19 DSTACK_LEVEL:136 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1560
 isspace DSTACK_USAGE:1 DSTACK_LEVEL:137 FILE:"C:\cvavreval\lib\ctype.lib" LINE:153
 usart0_rxc DSTACK_USAGE:4 DSTACK_LEVEL:141 FILE:"Main.c" LINE:224
+=======
+main DSTACK_USAGE:20 DSTACK_LEVEL:20 FILE:"Main.c" LINE:292
+sscanf DSTACK_USAGE:9 DSTACK_LEVEL:29 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1815
+_scanf DSTACK_USAGE:19 DSTACK_LEVEL:48 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1560
+isspace DSTACK_USAGE:1 DSTACK_LEVEL:49 FILE:"C:\cvavreval\lib\ctype.lib" LINE:153
+usart0_rxc DSTACK_USAGE:4 DSTACK_LEVEL:53 FILE:"Main.c" LINE:204
+>>>>>>> test
