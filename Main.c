@@ -79,6 +79,17 @@ void puts_USART1(char *str,char IDX)
     }
 }
 
+void puts_Modbus(char *str,char IDX)
+{
+    unsigned char i = 0;
+    if(TIMER2_OVERFLOW>0)
+    {       
+        for(i = 0;i<IDX;i++) putch_USART1(*(str+i));
+
+        for(i = 0; i<IDX; i++) *(str+i) = 0;
+    }
+}
+
 void putch_USART0(char data)
 {
     while(!(UCSR0A & (1<<UDRE0))); // UDRE flag is USART Data Register Empty
@@ -230,14 +241,12 @@ interrupt [USART0_RXC] void usart0_rxc(void)
         PACKET_BUFF_IDX++;
         TCNT2 = 0;
         TIMER2_OVERFLOW = 0;
-        //PORTB.1 = ~PORTB.1;
     }
     else {
         PACKET_BUFF_IDX = 0;
         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
         PACKET_BUFF_IDX++;
         TCNT2 = 0;
-        //PORTB.1 = ~PORTB.1;
         TIMER2_OVERFLOW = 0;
     }
 }
@@ -319,8 +328,6 @@ void main(void)
     usart0_init(bps_115200);
     timer2_init();
     SREG |= 0x80;
-    
-    //DDRB.1 = 1;
 
     delay_ms(5000);
     while(1)
@@ -328,9 +335,6 @@ void main(void)
         if(CHECK_GETS == 0)
         {
             //UCSR1B &= ~(1<<RXEN1);
-
-            //velocity_R = 1000;
-            //velocity_L = 1000;
             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
             sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 
@@ -339,6 +343,7 @@ void main(void)
 
             //UCSR1B |=(1<<RXEN1);
             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+
             delay_ms(5);
 
             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
@@ -350,15 +355,5 @@ void main(void)
             RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
             delay_ms(5);
         } 
-
-///////////////////////////멈추는거 일단제외////////////////////////
-        // else
-        // {
-        //     RTU_WriteOperate0(R,(unsigned int)120,(int)(2));
-        //     delay_ms(50);
-
-        //     RTU_WriteOperate0(L,(unsigned int)120,(int)(2));
-        //     delay_ms(50);
-        // }
     }
 }
