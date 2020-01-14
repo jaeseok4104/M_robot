@@ -47,7 +47,8 @@ void timer2_init(void)
     //TIMER2
     TCCR2 = (1<<WGM21)|(1<<CS22)|(1<<CS20);// CTC모드, 1024분주
 
-    OCR2 = 40; 
+    OCR2 = 40;
+    TIMSK = (1<<OCIE2)|(1<<OCIE0); 
     //TIMSK = (1<<OCIE2);
 }
 void timer0_init(void)
@@ -79,15 +80,17 @@ void puts_USART1(char *str,char IDX)
     }
 }
 
-void puts_Modbus(char *str,char IDX)
+void puts_Modbus1(char *str,char IDX)
 {
     unsigned char i = 0;
+    UCSR0B &= ~(1<<RXEN0);
     if(TIMER2_OVERFLOW>0)
     {       
-        for(i = 0;i<IDX;i++) putch_USART1(*(str+i));
+        for(i = 0;i<IDX-1;i++) putch_USART1(*(str+i));
 
         for(i = 0; i<IDX; i++) *(str+i) = 0;
     }
+    UCSR0B |= (1<<RXEN0);
 }
 
 void putch_USART0(char data)
@@ -240,7 +243,6 @@ interrupt [USART0_RXC] void usart0_rxc(void)
         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
         PACKET_BUFF_IDX++;
         TCNT2 = 0;
-        TIMER2_OVERFLOW = 0;
     }
     else {
         PACKET_BUFF_IDX = 0;
@@ -310,6 +312,8 @@ interrupt [USART1_RXC] void usart1_rxc(void)
 
 interrupt [TIM2_COMP] void timer2_comp(void)
 {
+    if(TIMER2_OVERFLOW == 0) PORTB.1 = ~PORTB.1;
+
     TIMER2_OVERFLOW++;
 }
 
@@ -328,32 +332,32 @@ void main(void)
     usart0_init(bps_115200);
     timer2_init();
     SREG |= 0x80;
-
-    delay_ms(5000);
+    DDRB.1 = 1;
+    PORTB.1 = 0;
+    //delay_ms(5000);
     while(1)
     {
-        if(CHECK_GETS == 0)
-        {
-            //UCSR1B &= ~(1<<RXEN1);
-            sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
-            sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
+        // if(CHECK_GETS == 0)
+        // {
+            // //UCSR1B &= ~(1<<RXEN1);
+            // sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
+            // sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 
             //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-            delay_ms(25);
 
             //UCSR1B |=(1<<RXEN1);
-            RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+            RTU_WriteOperate0(R,(unsigned int)121,(int)(300));
+            puts_Modbus1(PACKET_BUFF,PACKET_BUFF_IDX);
+            delay_ms(50);
 
-            delay_ms(5);
+            // RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
+            // delay_ms(5);
 
-            RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-            delay_ms(5);
+            // RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
+            // delay_ms(5);
 
-            RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
-            delay_ms(5);
-
-            RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
-            delay_ms(5);
-        } 
+            // RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
+            // delay_ms(5);
+        // } 
     }
 }
