@@ -311,8 +311,8 @@ interrupt [TIM0_COMP] void timer0_comp(void)
 
 void main(void)
 {
-    float velocity_R = 0;
-    float velocity_L = 0 ;
+    int velocity_R = 0;
+    int velocity_L = 0;
     unsigned char BUFF[100] = {0,};
 
     usart1_init(bps_115200);
@@ -327,51 +327,29 @@ void main(void)
     {
         if(CHECK_GETS == 0)
         {
-            sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
-        
-            if(velocity_R != 0 && velocity_L != 0)
-            {
-                if(velocity_R >0 && velocity_L>0)
-                {
-                    velocity_R = velocity_R + 300;
-                    velocity_L = velocity_L + 300;
-                }
-                
-                if(velocity_R <0 && velocity_L>0)
-                {
-                    velocity_R = velocity_R - 300;
-                    velocity_L = -velocity_L + 300;
-                }
-                
-                if(velocity_R <0 && velocity_L<0)
-                {
-                    velocity_R = velocity_R - 300;
-                    velocity_L = velocity_L - 300;
-                }
-                
-                if(velocity_R >0 && velocity_L<0)
-                {
-                    velocity_R = velocity_R + 300;
-                    velocity_L = velocity_L - 300;
-                }
+            //UCSR1B &= ~(1<<RXEN1);
 
-            }
+            //velocity_R = 1000;
+            //velocity_L = 1000;
+            sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
             sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 
-            puts_USART1(BUFF,VELOCITY_BUFF_IDX);
+            //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
             delay_ms(50);
+
+            //UCSR1B |=(1<<RXEN1);
+            RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+            delay_ms(5);
+
+            RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
+            delay_ms(5);
+
+            RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
+            delay_ms(5);
+
+            RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
+            delay_ms(5);
         } 
-        // RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-        // delay_ms(5);
-
-        // RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-        // delay_ms(5);
-
-        // RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
-        // delay_ms(5);
-
-        // RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
-        // delay_ms(5);
 
 ///////////////////////////멈추는거 일단제외////////////////////////
         // else

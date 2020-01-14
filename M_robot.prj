@@ -11,7 +11,7 @@ OutputListFilesDirectory=List
 OutputObjectFilesDirectory=Obj
 OutputExecutableFilesDirectory=Exe
 OutputLinkerFilesDirectory=Linker
-AllowDisplayFunctionCallTree=0
+AllowDisplayFunctionCallTree=1
 CleanUp=2
 EditorPanelMode=0
 ActiveEditorPanel=0
@@ -21,7 +21,7 @@ PageIndex0=0
 OF1=Main.c
 Active1=1
 EditorPanel1=0
-TimeStamp1=1344889607
+TimeStamp1=1345165777
 PageIndex1=1
 F1=Main.c
 [Compiler]
@@ -117,7 +117,7 @@ LinkerWarnings=1
 DebugBootLoader=0
 WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
-Build=146
+Build=193
 =======
 Build=131
 >>>>>>> test
@@ -256,7 +256,7 @@ CheckSignature=1
 CheckErasure=0
 PreserveEEPROM=0
 VerifyProgramming=1
-ProgrammingCounter=21
+ProgrammingCounter=56
 RunUserProg=0
 UserProgPath=
 UserProgCmdLine=
@@ -270,11 +270,11 @@ UserProgWorkDir=
 Files=1
 F1=Main.c
 [Bookmarks1]
-TimeStamp=1345157453
-Row=334
-Column=40
+TimeStamp=1345165777
+Row=340
+Column=60
 ScrollPosX=0
-ScrollPosY=324
+ScrollPosY=321
 BK0=-1
 BK1=-1
 BK2=-1
@@ -290,9 +290,7 @@ Row=0
 Column=0
 ScrollPosX=0
 ScrollPosY=0
-TimeStamp=1344912981
-[FoldedCode1]
-Blocks=0
+TimeStamp=1345209938
 [HeadersList]
 Files=1
 F1=C:\Users\ekzm5\Work\AVR\M_robot\Main.c
@@ -303,3 +301,5 @@ F2=C:\cvavreval\inc\mega128_bits.h
 F3=C:\cvavreval\inc\stdio.h
 F4=C:\cvavreval\inc\stdarg.h
 F5=C:\cvavreval\inc\delay.h
+[FoldedCode1]
+Blocks=0

@@ -311,8 +311,8 @@ interrupt [TIM0_COMP] void timer0_comp(void)
 
 void main(void)
 {
-    float velocity_R = 0;
-    float velocity_L = 0 ;
+    int velocity_R = 0;
+    int velocity_L = 0;
     unsigned char BUFF[100] = {0,};
 
     usart1_init(bps_115200);
@@ -327,12 +327,17 @@ void main(void)
     {
         if(CHECK_GETS == 0)
         {
+            //UCSR1B &= ~(1<<RXEN1);
+
+            //velocity_R = 1000;
+            //velocity_L = 1000;
             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
-            //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
+            sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 
-            // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-            // delay_ms(50);
+            //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
+            delay_ms(25);
 
+            //UCSR1B |=(1<<RXEN1);
             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
             delay_ms(5);
 

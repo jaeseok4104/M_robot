@@ -892,8 +892,8 @@
 ;void main(void)
 ; 0000 0139 {
 ;PCODE: $00000215 VOL: 0
-; 0000 013A     float velocity_R = 0;
-; 0000 013B     float velocity_L = 0 ;
+; 0000 013A     int velocity_R = 0;
+; 0000 013B     int velocity_L = 0;
 ; 0000 013C     unsigned char BUFF[100] = {0,};
 ; 0000 013D 
 ; 0000 013E     usart1_init(bps_115200);
@@ -902,39 +902,43 @@
 ;PCODE: $00000218 VOL: 0
 ;PCODE: $00000219 VOL: 0
 ;PCODE: $0000021A VOL: 0
-;	velocity_R -> Y+104
-;	velocity_L -> Y+100
+;	velocity_R -> R16,R17
+;	velocity_L -> R18,R19
 ;	BUFF -> Y+0
 ;PCODE: $0000021B VOL: 0
 ;PCODE: $0000021C VOL: 0
 ;PCODE: $0000021D VOL: 0
-; 0000 013F     usart0_init(bps_115200);
 ;PCODE: $0000021E VOL: 0
 ;PCODE: $0000021F VOL: 0
 ;PCODE: $00000220 VOL: 0
-; 0000 0140     timer2_init();
 ;PCODE: $00000221 VOL: 0
-; 0000 0141     SREG |= 0x80;
+; 0000 013F     usart0_init(bps_115200);
 ;PCODE: $00000222 VOL: 0
+;PCODE: $00000223 VOL: 0
+;PCODE: $00000224 VOL: 0
+; 0000 0140     timer2_init();
+;PCODE: $00000225 VOL: 0
+; 0000 0141     SREG |= 0x80;
+;PCODE: $00000226 VOL: 0
 ; 0000 0142 
 ; 0000 0143     //DDRB.1 = 1;
 ; 0000 0144 
 ; 0000 0145     delay_ms(5000);
-;PCODE: $00000223 VOL: 0
-;PCODE: $00000224 VOL: 0
-;PCODE: $00000225 VOL: 0
-; 0000 0146     while(1)
-;PCODE: $00000226 VOL: 0
-; 0000 0147     {
-; 0000 0148         if(CHECK_GETS == 0)
 ;PCODE: $00000227 VOL: 0
 ;PCODE: $00000228 VOL: 0
-; 0000 0149         {
-; 0000 014A             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
 ;PCODE: $00000229 VOL: 0
+; 0000 0146     while(1)
 ;PCODE: $0000022A VOL: 0
+; 0000 0147     {
+; 0000 0148         if(CHECK_GETS == 0)
 ;PCODE: $0000022B VOL: 0
 ;PCODE: $0000022C VOL: 0
+; 0000 0149         {
+; 0000 014A             //UCSR1B &= ~(1<<RXEN1);
+; 0000 014B 
+; 0000 014C             //velocity_R = 1000;
+; 0000 014D             //velocity_L = 1000;
+; 0000 014E             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity_R, &velocity_L);
 ;PCODE: $0000022D VOL: 0
 ;PCODE: $0000022E VOL: 0
 ;PCODE: $0000022F VOL: 0
@@ -946,12 +950,6 @@
 ;PCODE: $00000235 VOL: 0
 ;PCODE: $00000236 VOL: 0
 ;PCODE: $00000237 VOL: 0
-; 0000 014B             //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
-; 0000 014C 
-; 0000 014D             // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-; 0000 014E             // delay_ms(50);
-; 0000 014F 
-; 0000 0150             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
 ;PCODE: $00000238 VOL: 0
 ;PCODE: $00000239 VOL: 0
 ;PCODE: $0000023A VOL: 0
@@ -960,13 +958,11 @@
 ;PCODE: $0000023D VOL: 0
 ;PCODE: $0000023E VOL: 0
 ;PCODE: $0000023F VOL: 0
-; 0000 0151             delay_ms(5);
 ;PCODE: $00000240 VOL: 0
 ;PCODE: $00000241 VOL: 0
 ;PCODE: $00000242 VOL: 0
-; 0000 0152 
-; 0000 0153             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
 ;PCODE: $00000243 VOL: 0
+; 0000 014F             sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
 ;PCODE: $00000244 VOL: 0
 ;PCODE: $00000245 VOL: 0
 ;PCODE: $00000246 VOL: 0
@@ -975,53 +971,89 @@
 ;PCODE: $00000249 VOL: 0
 ;PCODE: $0000024A VOL: 0
 ;PCODE: $0000024B VOL: 0
-; 0000 0154             delay_ms(5);
 ;PCODE: $0000024C VOL: 0
 ;PCODE: $0000024D VOL: 0
 ;PCODE: $0000024E VOL: 0
-; 0000 0155 
-; 0000 0156             RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
 ;PCODE: $0000024F VOL: 0
 ;PCODE: $00000250 VOL: 0
 ;PCODE: $00000251 VOL: 0
 ;PCODE: $00000252 VOL: 0
+; 0000 0150 
+; 0000 0151             //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
+; 0000 0152             delay_ms(25);
 ;PCODE: $00000253 VOL: 0
 ;PCODE: $00000254 VOL: 0
 ;PCODE: $00000255 VOL: 0
-; 0000 0157             delay_ms(5);
+; 0000 0153 
+; 0000 0154             //UCSR1B |=(1<<RXEN1);
+; 0000 0155             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
 ;PCODE: $00000256 VOL: 0
 ;PCODE: $00000257 VOL: 0
 ;PCODE: $00000258 VOL: 0
-; 0000 0158 
-; 0000 0159             RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
 ;PCODE: $00000259 VOL: 0
 ;PCODE: $0000025A VOL: 0
 ;PCODE: $0000025B VOL: 0
+; 0000 0156             delay_ms(5);
 ;PCODE: $0000025C VOL: 0
 ;PCODE: $0000025D VOL: 0
 ;PCODE: $0000025E VOL: 0
+; 0000 0157 
+; 0000 0158             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
 ;PCODE: $0000025F VOL: 0
-; 0000 015A             delay_ms(5);
 ;PCODE: $00000260 VOL: 0
 ;PCODE: $00000261 VOL: 0
 ;PCODE: $00000262 VOL: 0
-; 0000 015B         }
-; 0000 015C 
-; 0000 015D ///////////////////////////멈추는거 일단제외////////////////////////
-; 0000 015E         // else
-; 0000 015F         // {
-; 0000 0160         //     RTU_WriteOperate0(R,(unsigned int)120,(int)(2));
-; 0000 0161         //     delay_ms(50);
-; 0000 0162 
-; 0000 0163         //     RTU_WriteOperate0(L,(unsigned int)120,(int)(2));
-; 0000 0164         //     delay_ms(50);
-; 0000 0165         // }
-; 0000 0166     }
 ;PCODE: $00000263 VOL: 0
 ;PCODE: $00000264 VOL: 0
 ;PCODE: $00000265 VOL: 0
-; 0000 0167 }
 ;PCODE: $00000266 VOL: 0
+; 0000 0159             delay_ms(5);
 ;PCODE: $00000267 VOL: 0
 ;PCODE: $00000268 VOL: 0
 ;PCODE: $00000269 VOL: 0
+; 0000 015A 
+; 0000 015B             RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
+;PCODE: $0000026A VOL: 0
+;PCODE: $0000026B VOL: 0
+;PCODE: $0000026C VOL: 0
+;PCODE: $0000026D VOL: 0
+;PCODE: $0000026E VOL: 0
+;PCODE: $0000026F VOL: 0
+;PCODE: $00000270 VOL: 0
+; 0000 015C             delay_ms(5);
+;PCODE: $00000271 VOL: 0
+;PCODE: $00000272 VOL: 0
+;PCODE: $00000273 VOL: 0
+; 0000 015D 
+; 0000 015E             RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
+;PCODE: $00000274 VOL: 0
+;PCODE: $00000275 VOL: 0
+;PCODE: $00000276 VOL: 0
+;PCODE: $00000277 VOL: 0
+;PCODE: $00000278 VOL: 0
+;PCODE: $00000279 VOL: 0
+;PCODE: $0000027A VOL: 0
+; 0000 015F             delay_ms(5);
+;PCODE: $0000027B VOL: 0
+;PCODE: $0000027C VOL: 0
+;PCODE: $0000027D VOL: 0
+; 0000 0160         }
+; 0000 0161 
+; 0000 0162 ///////////////////////////멈추는거 일단제외////////////////////////
+; 0000 0163         // else
+; 0000 0164         // {
+; 0000 0165         //     RTU_WriteOperate0(R,(unsigned int)120,(int)(2));
+; 0000 0166         //     delay_ms(50);
+; 0000 0167 
+; 0000 0168         //     RTU_WriteOperate0(L,(unsigned int)120,(int)(2));
+; 0000 0169         //     delay_ms(50);
+; 0000 016A         // }
+; 0000 016B     }
+;PCODE: $0000027E VOL: 0
+;PCODE: $0000027F VOL: 0
+;PCODE: $00000280 VOL: 0
+; 0000 016C }
+;PCODE: $00000281 VOL: 0
+;PCODE: $00000282 VOL: 0
+;PCODE: $00000283 VOL: 0
+;PCODE: $00000284 VOL: 0
