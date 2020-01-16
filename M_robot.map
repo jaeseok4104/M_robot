@@ -3,6 +3,7 @@ Variable                                                          Address   Size
 --------------------------------------------------------------------------------
 PACKET_BUFF                                                       0x0500     100
 VELOCITY_BUFF                                                     0x0564      20
+_seed                                                             0x0578       4
 
 EEPROM Allocation
 Variable                                                          Address   Size

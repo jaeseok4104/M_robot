@@ -11,12 +11,8 @@ OutputListFilesDirectory=List
 OutputObjectFilesDirectory=Obj
 OutputExecutableFilesDirectory=Exe
 OutputLinkerFilesDirectory=Linker
-AllowDisplayFunctionCallTree=1
+AllowDisplayFunctionCallTree=0
 CleanUp=2
-<<<<<<< HEAD
-=======
-F1=Main.c
->>>>>>> test
 EditorPanelMode=0
 ActiveEditorPanel=0
 Active0=0
@@ -25,12 +21,9 @@ PageIndex0=0
 OF1=Main.c
 Active1=1
 EditorPanel1=0
-TimeStamp1=1344889607
+TimeStamp1=1332157057
 PageIndex1=1
-<<<<<<< HEAD
 F1=Main.c
-=======
->>>>>>> test
 [Compiler]
 RebuildAll=0
 LinkageInformationPresent=1
@@ -124,9 +117,9 @@ LinkerWarnings=1
 DebugBootLoader=0
 WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
-Build=120
+Build=239
 =======
-Build=130
+Build=131
 >>>>>>> test
 UseEEPROMLocation0=1
 IncludePath0=
@@ -263,7 +256,7 @@ CheckSignature=1
 CheckErasure=0
 PreserveEEPROM=0
 VerifyProgramming=1
-ProgrammingCounter=21
+ProgrammingCounter=79
 RunUserProg=0
 UserProgPath=
 UserProgCmdLine=
@@ -277,15 +270,11 @@ UserProgWorkDir=
 Files=1
 F1=Main.c
 [Bookmarks1]
-<<<<<<< HEAD
-TimeStamp=1345107755
-=======
-TimeStamp=1345152265
->>>>>>> test
-Row=0
-Column=0
+TimeStamp=1345363214
+Row=310
+Column=47
 ScrollPosX=0
-ScrollPosY=0
+ScrollPosY=301
 BK0=-1
 BK1=-1
 BK2=-1
@@ -301,7 +290,7 @@ Row=0
 Column=0
 ScrollPosX=0
 ScrollPosY=0
-TimeStamp=1344912981
+TimeStamp=1345355554
 [FoldedCode1]
 Blocks=0
 [HeadersList]
