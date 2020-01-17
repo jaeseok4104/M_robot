@@ -21,7 +21,7 @@ PageIndex0=0
 OF1=Main.c
 Active1=1
 EditorPanel1=0
-TimeStamp1=1332157057
+TimeStamp1=1345364829
 PageIndex1=1
 F1=Main.c
 [Compiler]
@@ -32,7 +32,7 @@ CPUClock=14745600
 MemoryModel=1
 OptimizeSize=1
 OptimizationLevel=2
-PrintfFeatures=4
+PrintfFeatures=1
 ScanfFeatures=0
 DataStackSize=1024
 PgmMemSize=131072
@@ -117,7 +117,7 @@ LinkerWarnings=1
 DebugBootLoader=0
 WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
-Build=239
+Build=276
 =======
 Build=131
 >>>>>>> test
@@ -256,7 +256,7 @@ CheckSignature=1
 CheckErasure=0
 PreserveEEPROM=0
 VerifyProgramming=1
-ProgrammingCounter=79
+ProgrammingCounter=115
 RunUserProg=0
 UserProgPath=
 UserProgCmdLine=
@@ -270,11 +270,11 @@ UserProgWorkDir=
 Files=1
 F1=Main.c
 [Bookmarks1]
-TimeStamp=1345363214
-Row=310
-Column=47
+TimeStamp=1345364829
+Row=309
+Column=71
 ScrollPosX=0
-ScrollPosY=301
+ScrollPosY=300
 BK0=-1
 BK1=-1
 BK2=-1
@@ -290,7 +290,7 @@ Row=0
 Column=0
 ScrollPosX=0
 ScrollPosY=0
-TimeStamp=1345355554
+TimeStamp=1345409201
 [FoldedCode1]
 Blocks=0
 [HeadersList]

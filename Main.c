@@ -7,11 +7,16 @@
 #define POLYNORMIAL 0xA001
 
 #define CHARACTER3_5 25
+#define TRUE 0
+#define FALSE 1
 
 #define R 0x01
 #define L 0x02
+#define START 1
+#define STOP 2
 
 #define Length 0.29
+#define Gearratio 25
 
 unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
@@ -81,6 +86,22 @@ void puts_USART1(char *str,char IDX)
         *(str+i) = 0;
     }
 }
+
+// void puts_USART1(char *str,char IDX)
+// {
+//     unsigned char i = 0;
+
+//     while(*str != 0)
+//     {
+//         putch_USART1(*(str+i));
+//         i++;
+//     }
+
+//     for(i = 0; i<IDX; i++)
+//     {
+//         *(str+i) = 0;
+//     }
+// }
 
 void puts_Modbus1(char *str,char IDX)
 {
@@ -218,24 +239,48 @@ int RTU_ReedOperate0(char device_address,int starting_address,int data)
     }
 }
 
-void Make_MSPEED(float _velocity, float _angularV, int* R_RPM, int* L_RPM)
+void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
 {
     float VelocityR = 0;
     float VelocityL = 0;
 
-    if(_velocity>=0){
-        _angularV = -(_angularV);
+    if(*_velocity>=0){
+        *_angularV = -(*_angularV);
     }
 
-    VelocityR = _velocity+(_angularV*Length)/4;
-    VelocityL = _velocity-(_angularV*Length)/4;
+    VelocityR = *_velocity+(*_angularV*Length)/4;
+    VelocityL = *_velocity-(*_angularV*Length)/4;
 
-    *R_RPM = 152.788*VelocityR*25;
-    *L_RPM = 152.788*VelocityL*25;
+    *R_RPM = (int)(152.788*VelocityR*Gearratio);
+    *L_RPM = (int)(152.788*VelocityL*Gearratio);
+
     if( ((*R_RPM<300)&&(*R_RPM>-300))&&((*L_RPM<300)&&(*L_RPM>-300))){
         *R_RPM = 0;
         *L_RPM = 0;     
     }
+}
+void oper_Disapath(int velocityR, int velocityL, int p_velocity_R, int p_velocity_L)
+{
+    if((p_velocity_R==0) && (velocityR != 0))
+    {
+        RTU_WriteOperate0(R,(unsigned int)120,START);
+        delay_ms(5);
+    }
+    else if((p_velocity_R!=0) && (velocityR == 0))
+    {
+        RTU_WriteOperate0(R,(unsigned int)120,STOP);
+        delay_ms(5); 
+    }
+    if((p_velocity_L==0) && (velocityL != 0))
+    {
+        RTU_WriteOperate0(L,(unsigned int)120,START);
+        delay_ms(5);
+    }
+    else if((p_velocity_L!=0) && (velocityL == 0))
+    {
+        RTU_WriteOperate0(L,(unsigned int)120,STOP);
+        delay_ms(5); 
+    }    
 }
 
 interrupt [USART0_RXC] void usart0_rxc(void)
@@ -288,12 +333,18 @@ interrupt [TIM0_COMP] void timer0_comp(void)
 
 void main(void)
 {
-    float velocity = 0;
-    float angularV = 0;
-    float test1;
-    float test2;  
+    float a_buff;
+    float v_buff;
+
+    int velocity = 0;
+    int angularV = 0;
     int velocity_R = 0;
     int velocity_L = 0;
+    int past_velocity_R = 0;
+    int past_velocity_L = 0;
+
+    unsigned char mode_R = 0;
+    unsigned char mode_L = 0;
     unsigned char BUFF[100] = {0,};
 
     usart1_init(bps_115200);
@@ -303,34 +354,39 @@ void main(void)
     DDRB.1 = 1;
     PORTB.1 = 0;
     delay_ms(5000);
+    
     while(1)
     {
         if(CHECK_GETS == 0)
         {
-            //UCSR1B &= ~(1<<RXEN1);
+            UCSR1B &= ~(1<<RXEN1);
             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
-
-            test1 = (float)velocity/100;
-            test2 = (float)angularV/100;
-
-            //Make_MSPEED(velocity, angularV, &velocity_R, &velocity_L);
-            sprintf(BUFF,"<%d,%lf>", velocity, test2);
+            UCSR1B |=(1<<RXEN1);
             
-            //UCSR1B |=(1<<RXEN1);
-            puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-            delay_ms(50);
+            v_buff = (float)velocity/1000;
+            a_buff = (float)angularV/1000;
+            
+            Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+            //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
+            //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
+            
+            //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
 
-            // RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-            // delay_ms(5);
 
-            // RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-            // delay_ms(5);
+            past_velocity_R = velocity_R;
+            past_velocity_L = velocity_L;
 
-            // RTU_WriteOperate0(R,(unsigned int)120,(int)(1));
-            // delay_ms(5);
+            RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+            delay_ms(5);
 
-            // RTU_WriteOperate0(L,(unsigned int)120,(int)(1));
-            // delay_ms(5);
+            RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
+            delay_ms(5);
+            
+            RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
+            delay_ms(5);
+
+            RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
+            delay_ms(5);
         } 
     }
 }
