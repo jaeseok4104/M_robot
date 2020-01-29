@@ -1062,7 +1062,9 @@ __DELAY_USW_LOOP:
 	.DEF _PACKET_BUFF_IDX=R4
 	.DEF _TIMER0_OVERFLOW=R7
 	.DEF _VELOCITY_BUFF_IDX=R6
-	.DEF _CHECK_GETS=R9
+	.DEF _SRF02_CONVERTING_FLAG=R9
+	.DEF _SRF02_WAIT_FLAG=R8
+	.DEF _CHECK_GETS=R11
 
 	.CSEG
 	.ORG 0x00
@@ -1084,7 +1086,7 @@ __START_OF_CODE:
 	JMP  0x00
 	JMP  0x00
 	JMP  0x00
-	JMP  0x00
+	JMP  _timer1_compb
 	JMP  0x00
 	JMP  _timer0_comp
 	JMP  0x00
@@ -1107,7 +1109,11 @@ __START_OF_CODE:
 	JMP  0x00
 	JMP  0x00
 
-_0x4C:
+_0x7D:
+	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+	.DB  0x0,0x0,0x0,0x0,0xE0,0xE2,0xE4,0xE6
+	.DB  0xE8,0xEA,0xEC,0xEE,0x0,0x0,0x0,0x0
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
@@ -1121,9 +1127,9 @@ _0x4C:
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
-	.DB  0x0,0x0,0x0,0x0
-_0x59:
-	.DB  0x0,0x0,0x0,0x0,0x0,0x0
+	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+_0x8C:
+	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 _0x0:
 	.DB  0x3C,0x25,0x64,0x2C,0x25,0x64,0x3E,0x0
 _0x2000000:
@@ -1135,9 +1141,9 @@ _0x2080000:
 	.DB  0x0
 
 __GLOBAL_INI_TBL:
-	.DW  0x06
+	.DW  0x08
 	.DW  0x04
-	.DW  _0x59*2
+	.DW  _0x8C*2
 
 	.DW  0x01
 	.DW  __seed_G104
@@ -1245,7 +1251,7 @@ __GLOBAL_INI_END:
 ;
 ;#define POLYNORMIAL 0xA001
 ;
-;#define CHARACTER3_5 25
+;#define CHARACTER3_5 60 // 0.03msec
 ;#define TRUE 0
 ;#define FALSE 1
 ;
@@ -1257,6 +1263,27 @@ __GLOBAL_INI_END:
 ;#define Length 0.29
 ;#define Gearratio 25
 ;
+;//////////US/////////////////
+;#define Inches 0x50
+;#define Centimeters 0x51
+;#define microSec 0x52
+;
+;#define tau 0.1 //LOWPASS_FILTER
+;#define ts 0.7//SAMPLING CYCLE
+;
+;#define CommandReg 0
+;#define Unused 1
+;#define RangeHighByte 2
+;#define RangeLowByte 3
+;
+;#define TWI_START 0x08
+;#define MT_REPEATED_START 0x10
+;#define MT_SLAW_ACK 0x18
+;#define MT_DATA_ACK 0x28
+;#define MT_SLAR_ACK 0x40
+;#define MT_DATA_NACK 0x58
+;
+;//////////////////////integer////////////////
 ;unsigned char TIMER2_OVERFLOW = 0;
 ;unsigned char PACKET_BUFF[100] = {0,};
 ;unsigned char PACKET_BUFF_IDX = 0;
@@ -1264,119 +1291,144 @@ __GLOBAL_INI_END:
 ;unsigned char TIMER0_OVERFLOW = 0;
 ;unsigned char VELOCITY_BUFF[20] = {0,};
 ;unsigned char VELOCITY_BUFF_IDX = 0;
+;
+;///////////////FLAG//////////////////////
+;unsigned char SRF02_CONVERTING_FLAG = 0;
+;unsigned char SRF02_WAIT_FLAG = 0;
 ;unsigned char CHECK_GETS = 0;
 ;
+;////////////////init function/////////////
 ;void usart1_init(int bps)
-; 0000 001F {
+; 0000 0039 {
 
 	.CSEG
 _usart1_init:
-; 0000 0020     UCSR1A = 0x00;
+; 0000 003A     UCSR1A = 0x00;
 ;	bps -> Y+0
 	LDI  R30,LOW(0)
 	STS  155,R30
-; 0000 0021     UCSR1B = (1<<RXEN1)|(1<<TXEN1)|(1<<RXCIE1); // RXCIE1 bit is recevie interrupt allow
+; 0000 003B     UCSR1B = (1<<RXEN1)|(1<<TXEN1)|(1<<RXCIE1); // RXCIE1 bit is recevie interrupt allow
 	LDI  R30,LOW(152)
 	STS  154,R30
-; 0000 0022     UCSR1C = (1<<UCSZ11)|(1<<UCSZ10);
+; 0000 003C     UCSR1C = (1<<UCSZ11)|(1<<UCSZ10);
 	LDI  R30,LOW(6)
 	STS  157,R30
-; 0000 0023     UCSR1C &= ~(1<<UMSEL1);
+; 0000 003D     UCSR1C &= ~(1<<UMSEL1);
 	LDS  R30,157
 	ANDI R30,0xBF
 	STS  157,R30
-; 0000 0024 
-; 0000 0025     UBRR1H = (unsigned char)((bps>>8)  & 0x00ff);
+; 0000 003E 
+; 0000 003F     UBRR1H = (unsigned char)((bps>>8)  & 0x00ff);
 	LD   R30,Y
 	LDD  R31,Y+1
 	CALL __ASRW8
 	STS  152,R30
-; 0000 0026     UBRR1L = (unsigned char)(bps & 0x00ff);
+; 0000 0040     UBRR1L = (unsigned char)(bps & 0x00ff);
 	LD   R30,Y
 	STS  153,R30
-; 0000 0027 }
+; 0000 0041 }
 	RJMP _0x20A0004
 ;
 ;void usart0_init(int bps)
-; 0000 002A {
+; 0000 0044 {
 _usart0_init:
-; 0000 002B     UCSR0A = 0x00;
+; 0000 0045     UCSR0A = 0x00;
 ;	bps -> Y+0
 	LDI  R30,LOW(0)
 	OUT  0xB,R30
-; 0000 002C     UCSR0B = (1<<RXEN0)|(1<<TXEN0)|(1<<RXCIE0); // RXCIE1 bit is recevie interrupt allow
+; 0000 0046     UCSR0B = (1<<RXEN0)|(1<<TXEN0)|(1<<RXCIE0); // RXCIE1 bit is recevie interrupt allow
 	LDI  R30,LOW(152)
 	OUT  0xA,R30
-; 0000 002D     UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);
+; 0000 0047     UCSR0C = (1<<UCSZ01)|(1<<UCSZ00);
 	LDI  R30,LOW(6)
 	STS  149,R30
-; 0000 002E     UCSR0C &= ~(1<<UMSEL0);
+; 0000 0048     UCSR0C &= ~(1<<UMSEL0);
 	LDS  R30,149
 	ANDI R30,0xBF
 	STS  149,R30
-; 0000 002F 
-; 0000 0030     UBRR0H = (unsigned char)((bps>>8)  & 0x00ff);
+; 0000 0049 
+; 0000 004A     UBRR0H = (unsigned char)((bps>>8)  & 0x00ff);
 	LD   R30,Y
 	LDD  R31,Y+1
 	CALL __ASRW8
 	STS  144,R30
-; 0000 0031     UBRR0L = (unsigned char)(bps & 0x00ff);
+; 0000 004B     UBRR0L = (unsigned char)(bps & 0x00ff);
 	LD   R30,Y
 	OUT  0x9,R30
-; 0000 0032 }
+; 0000 004C }
 _0x20A0004:
 	ADIW R28,2
 	RET
 ;
+;void timer0_init(void)
+; 0000 004F {
+; 0000 0050     TCCR0 = (1<<WGM01)|(1<<CS02)|(1<<CS01)|(1<<CS00); // CTC모드, 1024분주
+; 0000 0051     OCR0 = 40;
+; 0000 0052     TIMSK = (1<<OCIE2)|(1<<OCIE0);
+; 0000 0053 }
+;
+;void timer1_init(void)
+; 0000 0056 {
+; 0000 0057     // TCCR1A = (1<<COM1B0);
+; 0000 0058     TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS12)|(1<<CS10);; // WGM bit setting
+; 0000 0059 
+; 0000 005A     OCR1B = 1008;
+; 0000 005B     ICR1 = 1200;//1200; //664
+; 0000 005C     TIMSK |= (1<<OCIE1B);
+; 0000 005D }
+;
 ;void timer2_init(void)
-; 0000 0035 {
+; 0000 0060 {
 _timer2_init:
-; 0000 0036     //TIMER2
-; 0000 0037     TCCR2 = (1<<WGM21)|(1<<CS22)|(1<<CS20);// CTC모드, 1024분주
-	LDI  R30,LOW(13)
+; 0000 0061     //TIMER2
+; 0000 0062     TCCR2 = (1<<WGM21)|(1<<CS21)|(1<<CS20);// CTC모드, 1분주
+	LDI  R30,LOW(11)
 	OUT  0x25,R30
-; 0000 0038 
-; 0000 0039     OCR2 = 40;
-	LDI  R30,LOW(40)
+; 0000 0063 
+; 0000 0064     OCR2 = 100;
+	LDI  R30,LOW(100)
 	OUT  0x23,R30
-; 0000 003A     TIMSK = (1<<OCIE2)|(1<<OCIE0);
+; 0000 0065     TIMSK = (1<<OCIE2)|(1<<OCIE0);
 	LDI  R30,LOW(130)
 	OUT  0x37,R30
-; 0000 003B     //TIMSK = (1<<OCIE2);
-; 0000 003C }
+; 0000 0066     //TIMSK = (1<<OCIE2);
+; 0000 0067 }
 	RET
-;void timer0_init(void)
-; 0000 003E {
-; 0000 003F     TCCR0 = (1<<WGM01)|(1<<CS02)|(1<<CS01)|(1<<CS00); // CTC모드, 1024분주
-; 0000 0040     OCR0 = 40;
-; 0000 0041     TIMSK = (1<<OCIE2)|(1<<OCIE0);
-; 0000 0042 }
 ;
+;void TWI_Init(){
+; 0000 0069 void TWI_Init(){
+; 0000 006A     TWBR = 10;
+; 0000 006B     TWSR = 0;
+; 0000 006C     TWCR = 0;
+; 0000 006D }
+;
+;
+;////////////////////USART RTX/////////////////////////////////
 ;void putch_USART1(char data)
-; 0000 0045 {
-; 0000 0046     while(!(UCSR1A & (1<<UDRE1))); // UDRE flag is USART Data Register Empty
+; 0000 0072 {
+; 0000 0073     while(!(UCSR1A & (1<<UDRE1))); // UDRE flag is USART Data Register Empty
 ;	data -> Y+0
-; 0000 0047     UDR1 = data;
-; 0000 0048 }
+; 0000 0074     UDR1 = data;
+; 0000 0075 }
 ;
 ;//USART 문자열 송신
 ;void puts_USART1(char *str,char IDX)
-; 0000 004C {
-; 0000 004D     unsigned char i = 0;
-; 0000 004E 
-; 0000 004F     for(i = 0;i<IDX;i++)
+; 0000 0079 {
+; 0000 007A     unsigned char i = 0;
+; 0000 007B 
+; 0000 007C     for(i = 0;i<IDX;i++)
 ;	*str -> Y+2
 ;	IDX -> Y+1
 ;	i -> R17
-; 0000 0050     {
-; 0000 0051         putch_USART1(*(str+i));
-; 0000 0052     }
-; 0000 0053 
-; 0000 0054     for(i = 0; i<IDX; i++)
-; 0000 0055     {
-; 0000 0056         *(str+i) = 0;
-; 0000 0057     }
-; 0000 0058 }
+; 0000 007D     {
+; 0000 007E         putch_USART1(*(str+i));
+; 0000 007F     }
+; 0000 0080 
+; 0000 0081     for(i = 0; i<IDX; i++)
+; 0000 0082     {
+; 0000 0083         *(str+i) = 0;
+; 0000 0084     }
+; 0000 0085 }
 ;
 ;// void puts_USART1(char *str,char IDX)
 ;// {
@@ -1394,60 +1446,62 @@ _timer2_init:
 ;//     }
 ;// }
 ;
+;/////////////////////////////////////MOTOR///////////////////////////////////////
 ;void puts_Modbus1(char *str,char IDX)
-; 0000 006B {
-; 0000 006C     unsigned char i = 0;
-; 0000 006D     UCSR0B &= ~(1<<RXEN0);
+; 0000 0099 {
+; 0000 009A     unsigned char i = 0;
+; 0000 009B     UCSR0B &= ~(1<<RXEN0);
 ;	*str -> Y+2
 ;	IDX -> Y+1
 ;	i -> R17
-; 0000 006E     if(TIMER2_OVERFLOW>0)
-; 0000 006F     {
-; 0000 0070         for(i = 0;i<IDX-1;i++) putch_USART1(*(str+i));
-; 0000 0072 for(i = 0; i<IDX; i++) *(str+i) = 0;
-; 0000 0073 }
-; 0000 0074     UCSR0B |= (1<<RXEN0);
-; 0000 0075 }
+; 0000 009C     if(TIMER2_OVERFLOW>0)
+; 0000 009D     {
+; 0000 009E         for(i = 0;i<IDX-1;i++) putch_USART1(*(str+i));
+; 0000 00A0 for(i = 0; i<IDX; i++) *(str+i) = 0;
+; 0000 00A1 }
+; 0000 00A2     UCSR0B |= (1<<RXEN0);
+; 0000 00A3 }
 ;
 ;void putch_USART0(char data)
-; 0000 0078 {
+; 0000 00A6 {
 _putch_USART0:
-; 0000 0079     while(!(UCSR0A & (1<<UDRE0))); // UDRE flag is USART Data Register Empty
+; 0000 00A7     while(!(UCSR0A & (1<<UDRE0))); // UDRE flag is USART Data Register Empty
 ;	data -> Y+0
 _0x13:
 	SBIS 0xB,5
 	RJMP _0x13
-; 0000 007A     UDR0 = data;
+; 0000 00A8     UDR0 = data;
 	LD   R30,Y
 	OUT  0xC,R30
-; 0000 007B }
+; 0000 00A9 }
 	ADIW R28,1
 	RET
 ;
 ;void puts_USART0(char *str,char IDX)
-; 0000 007E {
-; 0000 007F     //PACKET_BUFF[PACKET_BUFF_IDX] = 0;
-; 0000 0080     unsigned char i = 0;
-; 0000 0081     for(i = 0;i<IDX-1;i++)
+; 0000 00AC {
+; 0000 00AD     //PACKET_BUFF[PACKET_BUFF_IDX] = 0;
+; 0000 00AE     unsigned char i = 0;
+; 0000 00AF     for(i = 0;i<IDX-1;i++)
 ;	*str -> Y+2
 ;	IDX -> Y+1
 ;	i -> R17
-; 0000 0082     {
-; 0000 0083         putch_USART1(*(str+i));
-; 0000 0084     }
-; 0000 0085 
-; 0000 0086     for(i = 0; i<IDX; i++)
-; 0000 0087     {
-; 0000 0088         *(str+i) = 0;
-; 0000 0089     }
-; 0000 008A }
+; 0000 00B0     {
+; 0000 00B1         putch_USART1(*(str+i));
+; 0000 00B2     }
+; 0000 00B3 
+; 0000 00B4     for(i = 0; i<IDX; i++)
+; 0000 00B5     {
+; 0000 00B6         *(str+i) = 0;
+; 0000 00B7     }
+; 0000 00B8 }
 ;
+;///////////////////////Modbus///////////////////////////////////////
 ;unsigned short CRC16(unsigned char *puchMsg, int usDataLen)
-; 0000 008D {
+; 0000 00BC {
 _CRC16:
-; 0000 008E     int i;
-; 0000 008F     unsigned short crc, flag;
-; 0000 0090     crc = 0xffff;
+; 0000 00BD     int i;
+; 0000 00BE     unsigned short crc, flag;
+; 0000 00BF     crc = 0xffff;
 	CALL __SAVELOCR6
 ;	*puchMsg -> Y+8
 ;	usDataLen -> Y+6
@@ -1455,8 +1509,8 @@ _CRC16:
 ;	crc -> R18,R19
 ;	flag -> R20,R21
 	__GETWRN 18,19,-1
-; 0000 0091 
-; 0000 0092     while(usDataLen--){
+; 0000 00C0 
+; 0000 00C1     while(usDataLen--){
 _0x1C:
 	LDD  R30,Y+6
 	LDD  R31,Y+6+1
@@ -1465,7 +1519,7 @@ _0x1C:
 	STD  Y+6+1,R31
 	ADIW R30,1
 	BREQ _0x1E
-; 0000 0093         crc ^= *puchMsg++;
+; 0000 00C2         crc ^= *puchMsg++;
 	LDD  R26,Y+8
 	LDD  R27,Y+8+1
 	LD   R30,X+
@@ -1473,51 +1527,51 @@ _0x1C:
 	STD  Y+8+1,R27
 	LDI  R31,0
 	__EORWRR 18,19,30,31
-; 0000 0094 
-; 0000 0095         for (i=0; i<8; i++){
+; 0000 00C3 
+; 0000 00C4         for (i=0; i<8; i++){
 	__GETWRN 16,17,0
 _0x20:
 	__CPWRN 16,17,8
 	BRGE _0x21
-; 0000 0096             flag = crc & 0x0001;
+; 0000 00C5             flag = crc & 0x0001;
 	MOVW R30,R18
 	ANDI R30,LOW(0x1)
 	ANDI R31,HIGH(0x1)
 	MOVW R20,R30
-; 0000 0097             crc >>= 1;
+; 0000 00C6             crc >>= 1;
 	LSR  R19
 	ROR  R18
-; 0000 0098             if(flag) crc ^= POLYNORMIAL;
+; 0000 00C7             if(flag) crc ^= POLYNORMIAL;
 	MOV  R0,R20
 	OR   R0,R21
 	BREQ _0x22
 	LDI  R30,LOW(40961)
 	LDI  R31,HIGH(40961)
 	__EORWRR 18,19,30,31
-; 0000 0099         }
+; 0000 00C8         }
 _0x22:
 	__ADDWRN 16,17,1
 	RJMP _0x20
 _0x21:
-; 0000 009A     }
+; 0000 00C9     }
 	RJMP _0x1C
 _0x1E:
-; 0000 009B     return crc;
+; 0000 00CA     return crc;
 	MOVW R30,R18
 	CALL __LOADLOCR6
 	ADIW R28,10
 	RET
-; 0000 009C }
+; 0000 00CB }
 ;
 ;int RTU_WriteOperate0(char device_address,int starting_address,int data)
-; 0000 009F {
+; 0000 00CE {
 _RTU_WriteOperate0:
-; 0000 00A0     char protocol[8];
-; 0000 00A1     unsigned short crc16;
-; 0000 00A2     int i=0;
-; 0000 00A3     //PACKET_BUFF_IDX = 0;
-; 0000 00A4 
-; 0000 00A5     protocol[0]=device_address;
+; 0000 00CF     char protocol[8];
+; 0000 00D0     unsigned short crc16;
+; 0000 00D1     int i=0;
+; 0000 00D2     //PACKET_BUFF_IDX = 0;
+; 0000 00D3 
+; 0000 00D4     protocol[0]=device_address;
 	SBIW R28,8
 	CALL __SAVELOCR4
 ;	device_address -> Y+16
@@ -1529,32 +1583,32 @@ _RTU_WriteOperate0:
 	__GETWRN 18,19,0
 	LDD  R30,Y+16
 	STD  Y+4,R30
-; 0000 00A6     protocol[1]=0x06;
+; 0000 00D5     protocol[1]=0x06;
 	LDI  R30,LOW(6)
 	STD  Y+5,R30
-; 0000 00A7     protocol[2]=((starting_address>>8)  & 0x00ff);
+; 0000 00D6     protocol[2]=((starting_address>>8)  & 0x00ff);
 	LDD  R30,Y+14
 	LDD  R31,Y+14+1
 	CALL __ASRW8
 	STD  Y+6,R30
-; 0000 00A8     protocol[3]=((starting_address)     & 0x00ff);
+; 0000 00D7     protocol[3]=((starting_address)     & 0x00ff);
 	LDD  R30,Y+14
 	STD  Y+7,R30
-; 0000 00A9     protocol[4]=((data>>8)              & 0x00ff);
+; 0000 00D8     protocol[4]=((data>>8)              & 0x00ff);
 	LDD  R30,Y+12
 	LDD  R31,Y+12+1
 	CALL __ASRW8
 	STD  Y+8,R30
-; 0000 00AA     protocol[5]=((data)                 & 0x00ff);
+; 0000 00D9     protocol[5]=((data)                 & 0x00ff);
 	LDD  R30,Y+12
 	STD  Y+9,R30
-; 0000 00AB     protocol[6]=0;
+; 0000 00DA     protocol[6]=0;
 	LDI  R30,LOW(0)
 	STD  Y+10,R30
-; 0000 00AC     protocol[7]=0;
+; 0000 00DB     protocol[7]=0;
 	STD  Y+11,R30
-; 0000 00AD 
-; 0000 00AE     crc16 = CRC16(protocol, 6);
+; 0000 00DC 
+; 0000 00DD     crc16 = CRC16(protocol, 6);
 	MOVW R30,R28
 	ADIW R30,4
 	ST   -Y,R31
@@ -1565,21 +1619,21 @@ _RTU_WriteOperate0:
 	ST   -Y,R30
 	RCALL _CRC16
 	MOVW R16,R30
-; 0000 00AF 
-; 0000 00B0     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
+; 0000 00DE 
+; 0000 00DF     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
 	MOVW R30,R16
 	STD  Y+10,R30
-; 0000 00B1     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
+; 0000 00E0     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
 	__PUTBSR 17,11
-; 0000 00B2 
-; 0000 00B3 
-; 0000 00B4     for(i=0;i<8;i++)
+; 0000 00E1 
+; 0000 00E2 
+; 0000 00E3     for(i=0;i<8;i++)
 	__GETWRN 18,19,0
 _0x24:
 	__CPWRN 18,19,8
 	BRGE _0x25
-; 0000 00B5     {
-; 0000 00B6         putch_USART0(*(protocol+i));
+; 0000 00E4     {
+; 0000 00E5         putch_USART0(*(protocol+i));
 	MOVW R26,R28
 	ADIW R26,4
 	ADD  R26,R18
@@ -1587,90 +1641,90 @@ _0x24:
 	LD   R30,X
 	ST   -Y,R30
 	RCALL _putch_USART0
-; 0000 00B7     }
+; 0000 00E6     }
 	__ADDWRN 18,19,1
 	RJMP _0x24
 _0x25:
-; 0000 00B8 }
+; 0000 00E7 }
 	CALL __LOADLOCR4
 	ADIW R28,17
 	RET
 ;
 ;int RTU_WriteOperate1(char device_address,int starting_address,int data)
-; 0000 00BB {
-; 0000 00BC     char protocol[8];
-; 0000 00BD     unsigned short crc16;
-; 0000 00BE     int i=0;
-; 0000 00BF    // PACKET_BUFF_IDX = 0;
-; 0000 00C0 
-; 0000 00C1     protocol[0]=device_address;
+; 0000 00EA {
+; 0000 00EB     char protocol[8];
+; 0000 00EC     unsigned short crc16;
+; 0000 00ED     int i=0;
+; 0000 00EE    // PACKET_BUFF_IDX = 0;
+; 0000 00EF 
+; 0000 00F0     protocol[0]=device_address;
 ;	device_address -> Y+16
 ;	starting_address -> Y+14
 ;	data -> Y+12
 ;	protocol -> Y+4
 ;	crc16 -> R16,R17
 ;	i -> R18,R19
-; 0000 00C2     protocol[1]=0x06;
-; 0000 00C3     protocol[2]=((starting_address>>8)  & 0x00ff);
-; 0000 00C4     protocol[3]=((starting_address)     & 0x00ff);
-; 0000 00C5     protocol[4]=((data>>8)              & 0x00ff);
-; 0000 00C6     protocol[5]=((data)                 & 0x00ff);
-; 0000 00C7     protocol[6]=0;
-; 0000 00C8     protocol[7]=0;
-; 0000 00C9 
-; 0000 00CA     crc16 = CRC16(protocol, 6);
-; 0000 00CB 
-; 0000 00CC     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
-; 0000 00CD     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
-; 0000 00CE 
-; 0000 00CF 
-; 0000 00D0     for(i=0;i<8;i++)
-; 0000 00D1     {
-; 0000 00D2         putch_USART1(*(protocol+i));
-; 0000 00D3     }
-; 0000 00D4 }
+; 0000 00F1     protocol[1]=0x06;
+; 0000 00F2     protocol[2]=((starting_address>>8)  & 0x00ff);
+; 0000 00F3     protocol[3]=((starting_address)     & 0x00ff);
+; 0000 00F4     protocol[4]=((data>>8)              & 0x00ff);
+; 0000 00F5     protocol[5]=((data)                 & 0x00ff);
+; 0000 00F6     protocol[6]=0;
+; 0000 00F7     protocol[7]=0;
+; 0000 00F8 
+; 0000 00F9     crc16 = CRC16(protocol, 6);
+; 0000 00FA 
+; 0000 00FB     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
+; 0000 00FC     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
+; 0000 00FD 
+; 0000 00FE 
+; 0000 00FF     for(i=0;i<8;i++)
+; 0000 0100     {
+; 0000 0101         putch_USART1(*(protocol+i));
+; 0000 0102     }
+; 0000 0103 }
 ;
 ;int RTU_ReedOperate0(char device_address,int starting_address,int data)
-; 0000 00D7 {
-; 0000 00D8     char protocol[8];
-; 0000 00D9     unsigned short crc16;
-; 0000 00DA     int i=0;
-; 0000 00DB     //PACKET_BUFF_IDX = 0;
-; 0000 00DC 
-; 0000 00DD     protocol[0]=device_address;
+; 0000 0106 {
+; 0000 0107     char protocol[8];
+; 0000 0108     unsigned short crc16;
+; 0000 0109     int i=0;
+; 0000 010A     //PACKET_BUFF_IDX = 0;
+; 0000 010B 
+; 0000 010C     protocol[0]=device_address;
 ;	device_address -> Y+16
 ;	starting_address -> Y+14
 ;	data -> Y+12
 ;	protocol -> Y+4
 ;	crc16 -> R16,R17
 ;	i -> R18,R19
-; 0000 00DE     protocol[1]=0x03;
-; 0000 00DF     protocol[2]=((starting_address>>8)  & 0x00ff);
-; 0000 00E0     protocol[3]=((starting_address)     & 0x00ff);
-; 0000 00E1     protocol[4]=((data>>8)              & 0x00ff);
-; 0000 00E2     protocol[5]=((data)                 & 0x00ff);
-; 0000 00E3     protocol[6]=0;
-; 0000 00E4     protocol[7]=0;
-; 0000 00E5 
-; 0000 00E6     crc16 = CRC16(protocol, 6);
-; 0000 00E7 
-; 0000 00E8     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
-; 0000 00E9     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
-; 0000 00EA 
-; 0000 00EB 
-; 0000 00EC     for(i=0;i<8;i++)
-; 0000 00ED     {
-; 0000 00EE         putch_USART0(*(protocol+i));
-; 0000 00EF     }
-; 0000 00F0 }
+; 0000 010D     protocol[1]=0x03;
+; 0000 010E     protocol[2]=((starting_address>>8)  & 0x00ff);
+; 0000 010F     protocol[3]=((starting_address)     & 0x00ff);
+; 0000 0110     protocol[4]=((data>>8)              & 0x00ff);
+; 0000 0111     protocol[5]=((data)                 & 0x00ff);
+; 0000 0112     protocol[6]=0;
+; 0000 0113     protocol[7]=0;
+; 0000 0114 
+; 0000 0115     crc16 = CRC16(protocol, 6);
+; 0000 0116 
+; 0000 0117     protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
+; 0000 0118     protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
+; 0000 0119 
+; 0000 011A 
+; 0000 011B     for(i=0;i<8;i++)
+; 0000 011C     {
+; 0000 011D         putch_USART0(*(protocol+i));
+; 0000 011E     }
+; 0000 011F }
 ;
 ;void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
-; 0000 00F3 {
+; 0000 0122 {
 _Make_MSPEED:
-; 0000 00F4     float VelocityR = 0;
-; 0000 00F5     float VelocityL = 0;
-; 0000 00F6 
-; 0000 00F7     if(*_velocity>=0){
+; 0000 0123     float VelocityR = 0;
+; 0000 0124     float VelocityL = 0;
+; 0000 0125 
+; 0000 0126     if(*_velocity>=0){
 	SBIW R28,8
 	LDI  R30,LOW(0)
 	ST   Y,R30
@@ -1690,15 +1744,15 @@ _Make_MSPEED:
 	CALL SUBOPT_0x0
 	TST  R23
 	BRMI _0x2C
-; 0000 00F8         *_angularV = -(*_angularV);
+; 0000 0127         *_angularV = -(*_angularV);
 	CALL SUBOPT_0x1
 	CALL __ANEGF1
 	LDD  R26,Y+12
 	LDD  R27,Y+12+1
 	CALL __PUTDP1
-; 0000 00F9     }
-; 0000 00FA 
-; 0000 00FB     VelocityR = *_velocity+(*_angularV*Length)/4;
+; 0000 0128     }
+; 0000 0129 
+; 0000 012A     VelocityR = *_velocity+(*_angularV*Length)/4;
 _0x2C:
 	CALL SUBOPT_0x0
 	PUSH R23
@@ -1713,7 +1767,7 @@ _0x2C:
 	POP  R25
 	CALL __ADDF12
 	__PUTD1S 4
-; 0000 00FC     VelocityL = *_velocity-(*_angularV*Length)/4;
+; 0000 012B     VelocityL = *_velocity-(*_angularV*Length)/4;
 	CALL SUBOPT_0x0
 	PUSH R23
 	PUSH R22
@@ -1728,23 +1782,23 @@ _0x2C:
 	CALL __SWAPD12
 	CALL __SUBF12
 	CALL __PUTD1S0
-; 0000 00FD 
-; 0000 00FE     *R_RPM = (int)(152.788*VelocityR*Gearratio);
+; 0000 012C 
+; 0000 012D     *R_RPM = (int)(152.788*VelocityR*Gearratio);
 	__GETD1S 4
 	CALL SUBOPT_0x3
 	LDD  R26,Y+10
 	LDD  R27,Y+10+1
 	ST   X+,R30
 	ST   X,R31
-; 0000 00FF     *L_RPM = (int)(152.788*VelocityL*Gearratio);
+; 0000 012E     *L_RPM = (int)(152.788*VelocityL*Gearratio);
 	CALL __GETD1S0
 	CALL SUBOPT_0x3
 	LDD  R26,Y+8
 	LDD  R27,Y+8+1
 	ST   X+,R30
 	ST   X,R31
-; 0000 0100 
-; 0000 0101     if( ((*R_RPM<300)&&(*R_RPM>-300))&&((*L_RPM<300)&&(*L_RPM>-300))){
+; 0000 012F 
+; 0000 0130     if( ((*R_RPM<300)&&(*R_RPM>-300))&&((*L_RPM<300)&&(*L_RPM>-300))){
 	LDD  R26,Y+10
 	LDD  R27,Y+10+1
 	CALL __GETW1P
@@ -1784,91 +1838,182 @@ _0x32:
 _0x30:
 	RJMP _0x2D
 _0x33:
-; 0000 0102         *R_RPM = 0;
+; 0000 0131         *R_RPM = 0;
 	LDD  R26,Y+10
 	LDD  R27,Y+10+1
 	LDI  R30,LOW(0)
 	LDI  R31,HIGH(0)
 	ST   X+,R30
 	ST   X,R31
-; 0000 0103         *L_RPM = 0;
+; 0000 0132         *L_RPM = 0;
 	LDD  R26,Y+8
 	LDD  R27,Y+8+1
 	ST   X+,R30
 	ST   X,R31
-; 0000 0104     }
-; 0000 0105 }
+; 0000 0133     }
+; 0000 0134 }
 _0x2D:
 	ADIW R28,16
 	RET
 ;void oper_Disapath(int velocityR, int velocityL, int p_velocity_R, int p_velocity_L)
-; 0000 0107 {
-; 0000 0108     if((p_velocity_R==0) && (velocityR != 0))
+; 0000 0136 {
+; 0000 0137     if((p_velocity_R==0) && (velocityR != 0))
 ;	velocityR -> Y+6
 ;	velocityL -> Y+4
 ;	p_velocity_R -> Y+2
 ;	p_velocity_L -> Y+0
-; 0000 0109     {
-; 0000 010A         RTU_WriteOperate0(R,(unsigned int)120,START);
-; 0000 010B         delay_ms(5);
-; 0000 010C     }
-; 0000 010D     else if((p_velocity_R!=0) && (velocityR == 0))
-; 0000 010E     {
-; 0000 010F         RTU_WriteOperate0(R,(unsigned int)120,STOP);
-; 0000 0110         delay_ms(5);
-; 0000 0111     }
-; 0000 0112     if((p_velocity_L==0) && (velocityL != 0))
-; 0000 0113     {
-; 0000 0114         RTU_WriteOperate0(L,(unsigned int)120,START);
-; 0000 0115         delay_ms(5);
-; 0000 0116     }
-; 0000 0117     else if((p_velocity_L!=0) && (velocityL == 0))
-; 0000 0118     {
-; 0000 0119         RTU_WriteOperate0(L,(unsigned int)120,STOP);
-; 0000 011A         delay_ms(5);
-; 0000 011B     }
-; 0000 011C }
+; 0000 0138     {
+; 0000 0139         RTU_WriteOperate0(R,(unsigned int)120,START);
+; 0000 013A         delay_ms(5);
+; 0000 013B     }
+; 0000 013C     else if((p_velocity_R!=0) && (velocityR == 0))
+; 0000 013D     {
+; 0000 013E         RTU_WriteOperate0(R,(unsigned int)120,STOP);
+; 0000 013F         delay_ms(5);
+; 0000 0140     }
+; 0000 0141     if((p_velocity_L==0) && (velocityL != 0))
+; 0000 0142     {
+; 0000 0143         RTU_WriteOperate0(L,(unsigned int)120,START);
+; 0000 0144         delay_ms(5);
+; 0000 0145     }
+; 0000 0146     else if((p_velocity_L!=0) && (velocityL == 0))
+; 0000 0147     {
+; 0000 0148         RTU_WriteOperate0(L,(unsigned int)120,STOP);
+; 0000 0149         delay_ms(5);
+; 0000 014A     }
+; 0000 014B }
+;
+;////////////////////////////////////TWI_Ultra_Sonic//////////////////////////////////////////////////
+;
+;unsigned char TWI_Read(unsigned char addr, unsigned char regAddr)
+; 0000 0150 {
+; 0000 0151     unsigned char Data;
+; 0000 0152     TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));//Start조건 전송
+;	addr -> Y+2
+;	regAddr -> Y+1
+;	Data -> R17
+; 0000 0153     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));
+; 0000 0154 
+; 0000 0155     TWDR = addr&(~0x01);                //쓰기 위한 주소 전송
+; 0000 0156     TWCR = ((1<<TWINT)|(1<<TWEN));
+; 0000 0157     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
+; 0000 0158 
+; 0000 0159     TWDR = regAddr;                     //Reg주소 전송
+; 0000 015A     TWCR = ((1<<TWINT)|(1<<TWEN));
+; 0000 015B     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
+; 0000 015C 
+; 0000 015D     TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA)); //Repeated start 전송
+; 0000 015E     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_REPEATED_START));
+; 0000 015F 
+; 0000 0160     TWDR = addr|0x01;                       //읽기 위한 주소 전송
+; 0000 0161     TWCR = ((1<<TWINT)|(1<<TWEN));
+; 0000 0162     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAR_ACK));
+; 0000 0163 
+; 0000 0164 
+; 0000 0165     TWCR = ((1<<TWINT)|(1<<TWEN));
+; 0000 0166     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_NACK));
+; 0000 0167     Data = TWDR;                        //Data읽기
+; 0000 0168 
+; 0000 0169     TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
+; 0000 016A 
+; 0000 016B     return Data;
+; 0000 016C }
+;
+;void TWI_Write(unsigned char addr, unsigned char Data[],int NumberOfData)
+; 0000 016F {
+; 0000 0170     int i=0;
+; 0000 0171 
+; 0000 0172     TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));
+;	addr -> Y+6
+;	Data -> Y+4
+;	NumberOfData -> Y+2
+;	i -> R16,R17
+; 0000 0173     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));
+; 0000 0174 
+; 0000 0175     TWDR = addr&(~0x01);
+; 0000 0176     TWCR = ((1<<TWINT)|(1<<TWEN));
+; 0000 0177     while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
+; 0000 0178 
+; 0000 0179     for(i=0;i<NumberOfData;i++){
+; 0000 017A         TWDR = Data[i];
+; 0000 017B         TWCR = ((1<<TWINT)|(1<<TWEN));
+; 0000 017C         while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
+; 0000 017D     }
+; 0000 017E 
+; 0000 017F     TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
+; 0000 0180 }
+;
+;void Start_SRF02_Conv(unsigned char Adress, unsigned char mode){
+; 0000 0182 void Start_SRF02_Conv(unsigned char Adress, unsigned char mode){
+; 0000 0183     unsigned char ConvMode[2] = {0x00,};
+; 0000 0184     ConvMode[1] = mode;
+;	Adress -> Y+3
+;	mode -> Y+2
+;	ConvMode -> Y+0
+; 0000 0185     TWI_Write(Adress,ConvMode,2);
+; 0000 0186 }
+;
+;unsigned int Get_SRF02_Range(unsigned char Adress)
+; 0000 0189 {
+; 0000 018A     unsigned int range;
+; 0000 018B     unsigned char High = 0,Low = 0;
+; 0000 018C 
+; 0000 018D     High = TWI_Read(Adress, RangeHighByte);
+;	Adress -> Y+4
+;	range -> R16,R17
+;	High -> R19
+;	Low -> R18
+; 0000 018E     if(High == 0xFF){
+; 0000 018F         return 0;
+; 0000 0190     }
+; 0000 0191     Low = TWI_Read(Adress, RangeLowByte);
+; 0000 0192     range = (High<<8)+Low;
+; 0000 0193 
+; 0000 0194     return range;
+; 0000 0195 }
+;
+;/////////////////////ISR//////////////////////////////////
 ;
 ;interrupt [USART0_RXC] void usart0_rxc(void)
-; 0000 011F {
+; 0000 019A {
 _usart0_rxc:
 	ST   -Y,R26
 	ST   -Y,R27
 	ST   -Y,R30
 	IN   R30,SREG
 	ST   -Y,R30
-; 0000 0120     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
+; 0000 019B     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
 	IN   R30,0x24
-	CPI  R30,LOW(0x19)
-	BRSH _0x43
+	CPI  R30,LOW(0x3C)
+	BRSH _0x74
 	LDI  R30,LOW(0)
 	CP   R30,R5
-	BREQ _0x45
-_0x43:
+	BREQ _0x76
+_0x74:
 	LDI  R30,LOW(0)
 	CP   R30,R4
-	BRNE _0x42
-_0x45:
-; 0000 0121     {
-; 0000 0122         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+	BRNE _0x73
+_0x76:
+; 0000 019C     {
+; 0000 019D         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
 	CALL SUBOPT_0x4
-; 0000 0123         PACKET_BUFF_IDX++;
-; 0000 0124         TCNT2 = 0;
-; 0000 0125     }
-; 0000 0126     else {
-	RJMP _0x47
-_0x42:
-; 0000 0127         PACKET_BUFF_IDX = 0;
+; 0000 019E         PACKET_BUFF_IDX++;
+; 0000 019F         TCNT2 = 0;
+; 0000 01A0     }
+; 0000 01A1     else {
+	RJMP _0x78
+_0x73:
+; 0000 01A2         PACKET_BUFF_IDX = 0;
 	CLR  R4
-; 0000 0128         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+; 0000 01A3         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
 	CALL SUBOPT_0x4
-; 0000 0129         PACKET_BUFF_IDX++;
-; 0000 012A         TCNT2 = 0;
-; 0000 012B         TIMER2_OVERFLOW = 0;
+; 0000 01A4         PACKET_BUFF_IDX++;
+; 0000 01A5         TCNT2 = 0;
+; 0000 01A6         TIMER2_OVERFLOW = 0;
 	CLR  R5
-; 0000 012C     }
-_0x47:
-; 0000 012D }
+; 0000 01A7     }
+_0x78:
+; 0000 01A8 }
 	LD   R30,Y+
 	OUT  SREG,R30
 	LD   R30,Y+
@@ -1877,51 +2022,51 @@ _0x47:
 	RETI
 ;
 ;interrupt [USART1_RXC] void usart1_rxc(void)
-; 0000 0130 {
+; 0000 01AB {
 _usart1_rxc:
 	ST   -Y,R30
 	ST   -Y,R31
 	IN   R30,SREG
 	ST   -Y,R30
-; 0000 0131     unsigned char i = 0;
-; 0000 0132     i = UDR1;
+; 0000 01AC     unsigned char i = 0;
+; 0000 01AD     i = UDR1;
 	ST   -Y,R17
 ;	i -> R17
 	LDI  R17,0
 	LDS  R17,156
-; 0000 0133     if(i == '<'){
+; 0000 01AE     if(i == '<'){
 	CPI  R17,60
-	BRNE _0x48
-; 0000 0134         VELOCITY_BUFF_IDX = 0;
+	BRNE _0x79
+; 0000 01AF         VELOCITY_BUFF_IDX = 0;
 	CLR  R6
-; 0000 0135         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+; 0000 01B0         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 	CALL SUBOPT_0x5
-; 0000 0136         VELOCITY_BUFF_IDX++;
-; 0000 0137         CHECK_GETS = 1;
+; 0000 01B1         VELOCITY_BUFF_IDX++;
+; 0000 01B2         CHECK_GETS = 1;
 	LDI  R30,LOW(1)
-	MOV  R9,R30
-; 0000 0138     }
-; 0000 0139     else if(i == '>'){
-	RJMP _0x49
-_0x48:
+	MOV  R11,R30
+; 0000 01B3     }
+; 0000 01B4     else if(i == '>'){
+	RJMP _0x7A
+_0x79:
 	CPI  R17,62
-	BRNE _0x4A
-; 0000 013A         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+	BRNE _0x7B
+; 0000 01B5         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 	CALL SUBOPT_0x5
-; 0000 013B         VELOCITY_BUFF_IDX++;
-; 0000 013C         CHECK_GETS = 0;
-	CLR  R9
-; 0000 013D     }
-; 0000 013E     else{
-	RJMP _0x4B
-_0x4A:
-; 0000 013F         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+; 0000 01B6         VELOCITY_BUFF_IDX++;
+; 0000 01B7         CHECK_GETS = 0;
+	CLR  R11
+; 0000 01B8     }
+; 0000 01B9     else{
+	RJMP _0x7C
+_0x7B:
+; 0000 01BA         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 	CALL SUBOPT_0x5
-; 0000 0140         VELOCITY_BUFF_IDX++;
-; 0000 0141     }
-_0x4B:
-_0x49:
-; 0000 0142 }
+; 0000 01BB         VELOCITY_BUFF_IDX++;
+; 0000 01BC     }
+_0x7C:
+_0x7A:
+; 0000 01BD }
 	LD   R17,Y+
 	LD   R30,Y+
 	OUT  SREG,R30
@@ -1930,65 +2075,85 @@ _0x49:
 	RETI
 ;
 ;interrupt [TIM2_COMP] void timer2_comp(void)
-; 0000 0145 {
+; 0000 01C0 {
 _timer2_comp:
 	ST   -Y,R30
 	IN   R30,SREG
-; 0000 0146     TIMER2_OVERFLOW++;
+; 0000 01C1     TIMER2_OVERFLOW++;
 	INC  R5
-; 0000 0147 }
-	RJMP _0x58
+; 0000 01C2 }
+	RJMP _0x8B
 ;
 ;interrupt [TIM0_COMP] void timer0_comp(void)
-; 0000 014A {
+; 0000 01C5 {
 _timer0_comp:
 	ST   -Y,R30
 	IN   R30,SREG
-; 0000 014B     TIMER0_OVERFLOW++;
+; 0000 01C6     TIMER0_OVERFLOW++;
 	INC  R7
-; 0000 014C }
-_0x58:
+; 0000 01C7 }
+_0x8B:
 	OUT  SREG,R30
 	LD   R30,Y+
 	RETI
 ;
+;interrupt [TIM1_COMPB] void timer1_compb(void)
+; 0000 01CA {
+_timer1_compb:
+	ST   -Y,R30
+; 0000 01CB     SRF02_CONVERTING_FLAG = 1;
+	LDI  R30,LOW(1)
+	MOV  R9,R30
+; 0000 01CC }
+	LD   R30,Y+
+	RETI
+;
 ;void main(void)
-; 0000 014F {
+; 0000 01CF {
 _main:
-; 0000 0150     float a_buff;
-; 0000 0151     float v_buff;
-; 0000 0152 
-; 0000 0153     int velocity = 0;
-; 0000 0154     int angularV = 0;
-; 0000 0155     int velocity_R = 0;
-; 0000 0156     int velocity_L = 0;
-; 0000 0157     int past_velocity_R = 0;
-; 0000 0158     int past_velocity_L = 0;
-; 0000 0159 
-; 0000 015A     unsigned char mode_R = 0;
-; 0000 015B     unsigned char mode_L = 0;
-; 0000 015C     unsigned char BUFF[100] = {0,};
-; 0000 015D 
-; 0000 015E     usart1_init(bps_115200);
+; 0000 01D0     float a_buff;
+; 0000 01D1     float v_buff;
+; 0000 01D2 
+; 0000 01D3     int velocity = 0;
+; 0000 01D4     int angularV = 0;
+; 0000 01D5     int velocity_R = 0;
+; 0000 01D6     int velocity_L = 0;
+; 0000 01D7     int past_velocity_R = 0;
+; 0000 01D8     int past_velocity_L = 0;
+; 0000 01D9 
+; 0000 01DA     float robot_position_x = 0;
+; 0000 01DB     float robot_position_y = 0;
+; 0000 01DC     unsigned char BUFF[100] = {0,};
+; 0000 01DD 
+; 0000 01DE     /////////////////Ultra sonic/////////////////////////
+; 0000 01DF     unsigned char USID[10] = {0xE0, 0xE2, 0xE4, 0xE6, 0xE8, 0xEA, 0xEC, 0xEE};
+; 0000 01E0     unsigned char us_range[10] = {0,};
+; 0000 01E1     unsigned char pre_us_range[10] = {0,};
+; 0000 01E2 
+; 0000 01E3     usart1_init(bps_115200);
 	SBIW R28,63
-	SBIW R28,53
-	LDI  R24,108
+	SBIW R28,63
+	SBIW R28,26
+	LDI  R24,144
 	LDI  R26,LOW(0)
 	LDI  R27,HIGH(0)
-	LDI  R30,LOW(_0x4C*2)
-	LDI  R31,HIGH(_0x4C*2)
+	LDI  R30,LOW(_0x7D*2)
+	LDI  R31,HIGH(_0x7D*2)
 	CALL __INITLOCB
-;	a_buff -> Y+112
-;	v_buff -> Y+108
+;	a_buff -> Y+148
+;	v_buff -> Y+144
 ;	velocity -> R16,R17
 ;	angularV -> R18,R19
 ;	velocity_R -> R20,R21
-;	velocity_L -> Y+106
-;	past_velocity_R -> Y+104
-;	past_velocity_L -> Y+102
-;	mode_R -> Y+101
-;	mode_L -> Y+100
-;	BUFF -> Y+0
+;	velocity_L -> Y+142
+;	past_velocity_R -> Y+140
+;	past_velocity_L -> Y+138
+;	robot_position_x -> Y+134
+;	robot_position_y -> Y+130
+;	BUFF -> Y+30
+;	USID -> Y+20
+;	us_range -> Y+10
+;	pre_us_range -> Y+0
 	__GETWRN 16,17,0
 	__GETWRN 18,19,0
 	__GETWRN 20,21,0
@@ -1997,38 +2162,57 @@ _main:
 	ST   -Y,R31
 	ST   -Y,R30
 	RCALL _usart1_init
-; 0000 015F     usart0_init(bps_115200);
+; 0000 01E4     usart0_init(bps_115200);
 	LDI  R30,LOW(7)
 	LDI  R31,HIGH(7)
 	ST   -Y,R31
 	ST   -Y,R30
 	RCALL _usart0_init
-; 0000 0160     timer2_init();
+; 0000 01E5     timer2_init();
 	RCALL _timer2_init
-; 0000 0161     SREG |= 0x80;
+; 0000 01E6     SREG |= 0x80;
 	BSET 7
-; 0000 0162     DDRB.1 = 1;
+; 0000 01E7 
+; 0000 01E8     DDRB.1 = 1;
 	SBI  0x17,1
-; 0000 0163     PORTB.1 = 0;
-	CBI  0x18,1
-; 0000 0164     delay_ms(5000);
-	LDI  R30,LOW(5000)
-	LDI  R31,HIGH(5000)
+; 0000 01E9     DDRB.2 = 1;
+	SBI  0x17,2
+; 0000 01EA     delay_ms(2500);
+	LDI  R30,LOW(2500)
+	LDI  R31,HIGH(2500)
 	CALL SUBOPT_0x6
-; 0000 0165 
-; 0000 0166     while(1)
-_0x51:
-; 0000 0167     {
-; 0000 0168         if(CHECK_GETS == 0)
-	TST  R9
+; 0000 01EB 
+; 0000 01EC     SRF02_CONVERTING_FLAG = 0;
+	CLR  R9
+; 0000 01ED     while(1)
+_0x82:
+; 0000 01EE     {
+; 0000 01EF         // if(SRF02_WAIT_FLAG == 0){
+; 0000 01F0         //     Start_SRF02_Conv(USID[0],Centimeters);
+; 0000 01F1         //     TCNT1H = 0;
+; 0000 01F2         //     TCNT1L = 0;
+; 0000 01F3         //     SRF02_WAIT_FLAG = 1;
+; 0000 01F4         // }
+; 0000 01F5 
+; 0000 01F6         if(CHECK_GETS == 0)
+	TST  R11
 	BREQ PC+3
-	JMP _0x54
-; 0000 0169         {
-; 0000 016A             UCSR1B &= ~(1<<RXEN1);
+	JMP _0x85
+; 0000 01F7         {
+; 0000 01F8             PORTB.2 = ~PORTB.2;
+	SBIS 0x18,2
+	RJMP _0x86
+	CBI  0x18,2
+	RJMP _0x87
+_0x86:
+	SBI  0x18,2
+_0x87:
+; 0000 01F9 
+; 0000 01FA             UCSR1B &= ~(1<<RXEN1);
 	LDS  R30,154
 	ANDI R30,0xEF
 	STS  154,R30
-; 0000 016B             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
+; 0000 01FB             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
 	LDI  R30,LOW(_VELOCITY_BUFF)
 	LDI  R31,HIGH(_VELOCITY_BUFF)
 	ST   -Y,R31
@@ -2055,29 +2239,29 @@ _0x51:
 	POP  R19
 	POP  R16
 	POP  R17
-; 0000 016C             UCSR1B |=(1<<RXEN1);
+; 0000 01FC             UCSR1B |=(1<<RXEN1);
 	LDS  R30,154
 	ORI  R30,0x10
 	STS  154,R30
-; 0000 016D 
-; 0000 016E             v_buff = (float)velocity/1000;
+; 0000 01FD 
+; 0000 01FE             v_buff = (float)velocity/1000;
 	MOVW R30,R16
 	CALL SUBOPT_0x7
-	__PUTD1SX 108
-; 0000 016F             a_buff = (float)angularV/1000;
+	__PUTD1SX 144
+; 0000 01FF             a_buff = (float)angularV/1000;
 	MOVW R30,R18
 	CALL SUBOPT_0x7
-	__PUTD1SX 112
-; 0000 0170 
-; 0000 0171             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+	__PUTD1SX 148
+; 0000 0200 
+; 0000 0201             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 	MOVW R30,R28
-	SUBI R30,LOW(-(108))
-	SBCI R31,HIGH(-(108))
+	SUBI R30,LOW(-(144))
+	SBCI R31,HIGH(-(144))
 	ST   -Y,R31
 	ST   -Y,R30
 	MOVW R30,R28
-	SUBI R30,LOW(-(114))
-	SBCI R31,HIGH(-(114))
+	SUBI R30,LOW(-(150))
+	SBCI R31,HIGH(-(150))
 	ST   -Y,R31
 	ST   -Y,R30
 	IN   R30,SPL
@@ -2088,26 +2272,28 @@ _0x51:
 	PUSH R21
 	PUSH R20
 	MOVW R30,R28
-	SUBI R30,LOW(-(112))
-	SBCI R31,HIGH(-(112))
+	SUBI R30,LOW(-(148))
+	SBCI R31,HIGH(-(148))
 	ST   -Y,R31
 	ST   -Y,R30
 	RCALL _Make_MSPEED
 	POP  R20
 	POP  R21
-; 0000 0172             //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
-; 0000 0173             //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
-; 0000 0174 
-; 0000 0175             //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-; 0000 0176 
-; 0000 0177 
-; 0000 0178             past_velocity_R = velocity_R;
-	__PUTWSRX 20,21,104
-; 0000 0179             past_velocity_L = velocity_L;
-	__GETW1SX 106
-	__PUTW1SX 102
-; 0000 017A 
-; 0000 017B             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+; 0000 0202 
+; 0000 0203             // if(SRF02_CONVERTING_FLAG == 1 && SRF02_WAIT_FLAG == 1){
+; 0000 0204             //     us_range[0] = Get_SRF02_Range(0xE0);
+; 0000 0205 
+; 0000 0206             //     us_range[0] = ( tau * pre_us_range[0] + ts * us_range[0] ) / (tau + ts) ;
+; 0000 0207 
+; 0000 0208             //     SRF02_CONVERTING_FLAG = 0;
+; 0000 0209             //     SRF02_WAIT_FLAG = 0;
+; 0000 020A             // }
+; 0000 020B 
+; 0000 020C             //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
+; 0000 020D             // sprintf(BUFF,"<%d,%d,%d>", velocity_R, velocity_L, us_range[0]);
+; 0000 020E             // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
+; 0000 020F 
+; 0000 0210             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
 	LDI  R30,LOW(1)
 	ST   -Y,R30
 	LDI  R30,LOW(121)
@@ -2117,36 +2303,36 @@ _0x51:
 	ST   -Y,R21
 	ST   -Y,R20
 	CALL SUBOPT_0x8
-; 0000 017C             delay_ms(5);
-; 0000 017D 
-; 0000 017E             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
+; 0000 0211             delay_ms(5);
+; 0000 0212 
+; 0000 0213             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
 	LDI  R30,LOW(2)
 	ST   -Y,R30
 	LDI  R30,LOW(121)
 	LDI  R31,HIGH(121)
 	ST   -Y,R31
 	ST   -Y,R30
-	__GETW1SX 109
+	__GETW1SX 145
 	CALL __ANEGW1
 	CALL SUBOPT_0x9
-; 0000 017F             delay_ms(5);
-; 0000 0180 
-; 0000 0181             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
+; 0000 0214             delay_ms(5);
+; 0000 0215 
+; 0000 0216             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
 	LDI  R30,LOW(1)
 	CALL SUBOPT_0xA
-; 0000 0182             delay_ms(5);
-; 0000 0183 
-; 0000 0184             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
+; 0000 0217             delay_ms(5);
+; 0000 0218 
+; 0000 0219             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
 	LDI  R30,LOW(2)
 	CALL SUBOPT_0xA
-; 0000 0185             delay_ms(5);
-; 0000 0186         }
-; 0000 0187     }
-_0x54:
-	RJMP _0x51
-; 0000 0188 }
-_0x55:
-	RJMP _0x55
+; 0000 021A             delay_ms(5);
+; 0000 021B         }
+; 0000 021C     }
+_0x85:
+	RJMP _0x82
+; 0000 021D }
+_0x88:
+	RJMP _0x88
 	#ifndef __SLEEP_DEFINED__
 	#define __SLEEP_DEFINED__
 	.EQU __se_bit=0x20

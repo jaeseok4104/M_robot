@@ -6,7 +6,7 @@
 
 #define POLYNORMIAL 0xA001
 
-#define CHARACTER3_5 25
+#define CHARACTER3_5 60 // 0.03msec
 #define TRUE 0
 #define FALSE 1
 
@@ -18,6 +18,27 @@
 #define Length 0.29
 #define Gearratio 25
 
+//////////US/////////////////
+#define Inches 0x50
+#define Centimeters 0x51
+#define microSec 0x52
+
+#define tau 0.1 //LOWPASS_FILTER
+#define ts 0.7//SAMPLING CYCLE
+
+#define CommandReg 0
+#define Unused 1
+#define RangeHighByte 2
+#define RangeLowByte 3
+
+#define TWI_START 0x08
+#define MT_REPEATED_START 0x10
+#define MT_SLAW_ACK 0x18
+#define MT_DATA_ACK 0x28
+#define MT_SLAR_ACK 0x40
+#define MT_DATA_NACK 0x58
+
+//////////////////////integer////////////////
 unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
 unsigned char PACKET_BUFF_IDX = 0;
@@ -25,8 +46,13 @@ unsigned char PACKET_BUFF_IDX = 0;
 unsigned char TIMER0_OVERFLOW = 0;
 unsigned char VELOCITY_BUFF[20] = {0,};
 unsigned char VELOCITY_BUFF_IDX = 0;
+
+///////////////FLAG//////////////////////
+unsigned char SRF02_CONVERTING_FLAG = 0;
+unsigned char SRF02_WAIT_FLAG = 0;
 unsigned char CHECK_GETS = 0;
 
+////////////////init function/////////////
 void usart1_init(int bps)
 {
     UCSR1A = 0x00;
@@ -49,15 +75,6 @@ void usart0_init(int bps)
     UBRR0L = (unsigned char)(bps & 0x00ff);
 }
 
-void timer2_init(void)
-{
-    //TIMER2
-    TCCR2 = (1<<WGM21)|(1<<CS22)|(1<<CS20);// CTC모드, 1024분주
-
-    OCR2 = 40;
-    TIMSK = (1<<OCIE2)|(1<<OCIE0); 
-    //TIMSK = (1<<OCIE2);
-}
 void timer0_init(void)
 {
     TCCR0 = (1<<WGM01)|(1<<CS02)|(1<<CS01)|(1<<CS00); // CTC모드, 1024분주
@@ -65,6 +82,34 @@ void timer0_init(void)
     TIMSK = (1<<OCIE2)|(1<<OCIE0);
 }
 
+void timer1_init(void)
+{
+    // TCCR1A = (1<<COM1B0);
+    TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS12)|(1<<CS10);; // WGM bit setting
+
+    OCR1B = 1008;
+    ICR1 = 1200;//1200; //664
+    TIMSK |= (1<<OCIE1B);
+}
+
+void timer2_init(void)
+{
+    //TIMER2
+    TCCR2 = (1<<WGM21)|(1<<CS21)|(1<<CS20);// CTC모드, 1분주
+
+    OCR2 = 100;
+    TIMSK = (1<<OCIE2)|(1<<OCIE0); 
+    //TIMSK = (1<<OCIE2);
+}
+
+void TWI_Init(){
+    TWBR = 10;
+    TWSR = 0;
+    TWCR = 0;
+}
+
+
+////////////////////USART RTX/////////////////////////////////
 void putch_USART1(char data)
 {
     while(!(UCSR1A & (1<<UDRE1))); // UDRE flag is USART Data Register Empty
@@ -103,6 +148,7 @@ void puts_USART1(char *str,char IDX)
 //     }
 // }
 
+/////////////////////////////////////MOTOR///////////////////////////////////////
 void puts_Modbus1(char *str,char IDX)
 {
     unsigned char i = 0;
@@ -137,6 +183,7 @@ void puts_USART0(char *str,char IDX)
     }
 }
 
+///////////////////////Modbus///////////////////////////////////////
 unsigned short CRC16(unsigned char *puchMsg, int usDataLen)
 {
     int i;
@@ -283,6 +330,82 @@ void oper_Disapath(int velocityR, int velocityL, int p_velocity_R, int p_velocit
     }    
 }
 
+////////////////////////////////////TWI_Ultra_Sonic//////////////////////////////////////////////////
+
+unsigned char TWI_Read(unsigned char addr, unsigned char regAddr)
+{
+    unsigned char Data;
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));//Start조건 전송
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));
+    
+    TWDR = addr&(~0x01);                //쓰기 위한 주소 전송
+    TWCR = ((1<<TWINT)|(1<<TWEN));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
+    
+    TWDR = regAddr;                     //Reg주소 전송
+    TWCR = ((1<<TWINT)|(1<<TWEN));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA)); //Repeated start 전송
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_REPEATED_START));
+    
+    TWDR = addr|0x01;                       //읽기 위한 주소 전송
+    TWCR = ((1<<TWINT)|(1<<TWEN));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAR_ACK));
+                                    
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN));                
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_NACK));
+    Data = TWDR;                        //Data읽기
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
+    
+    return Data;    
+}
+
+void TWI_Write(unsigned char addr, unsigned char Data[],int NumberOfData)
+{
+    int i=0;
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));  
+    
+    TWDR = addr&(~0x01);
+    TWCR = ((1<<TWINT)|(1<<TWEN));  
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
+    
+    for(i=0;i<NumberOfData;i++){
+        TWDR = Data[i];
+        TWCR = ((1<<TWINT)|(1<<TWEN));  
+        while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
+    }
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
+}
+
+void Start_SRF02_Conv(unsigned char Adress, unsigned char mode){
+    unsigned char ConvMode[2] = {0x00,};
+    ConvMode[1] = mode;
+    TWI_Write(Adress,ConvMode,2);
+}
+
+unsigned int Get_SRF02_Range(unsigned char Adress)
+{
+    unsigned int range;
+    unsigned char High = 0,Low = 0;
+
+    High = TWI_Read(Adress, RangeHighByte);
+    if(High == 0xFF){
+        return 0;
+    }
+    Low = TWI_Read(Adress, RangeLowByte);
+    range = (High<<8)+Low;
+
+    return range;
+}
+
+/////////////////////ISR//////////////////////////////////
+
 interrupt [USART0_RXC] void usart0_rxc(void)
 {
     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
@@ -331,11 +454,16 @@ interrupt [TIM0_COMP] void timer0_comp(void)
     TIMER0_OVERFLOW++;
 }
 
+interrupt [TIM1_COMPB] void timer1_compb(void)
+{
+    SRF02_CONVERTING_FLAG = 1;
+}
+
 void main(void)
 {
     float a_buff;
     float v_buff;
-
+    
     int velocity = 0;
     int angularV = 0;
     int velocity_R = 0;
@@ -343,20 +471,38 @@ void main(void)
     int past_velocity_R = 0;
     int past_velocity_L = 0;
 
-    unsigned char mode = 0;
+    float robot_position_x = 0;
+    float robot_position_y = 0;
     unsigned char BUFF[100] = {0,};
+
+    /////////////////Ultra sonic/////////////////////////
+    unsigned char USID[10] = {0xE0, 0xE2, 0xE4, 0xE6, 0xE8, 0xEA, 0xEC, 0xEE};
+    unsigned char us_range[10] = {0,};
+    unsigned char pre_us_range[10] = {0,};
 
     usart1_init(bps_115200);
     usart0_init(bps_115200);
     timer2_init();
     SREG |= 0x80;
+
     DDRB.1 = 1;
-    PORTB.1 = 0;
+    DDRB.2 = 1;
     delay_ms(5000);
+    
+    SRF02_CONVERTING_FLAG = 0;
     while(1)
     {
+        // if(SRF02_WAIT_FLAG == 0){
+        //     Start_SRF02_Conv(USID[0],Centimeters);
+        //     TCNT1H = 0;
+        //     TCNT1L = 0;
+        //     SRF02_WAIT_FLAG = 1;
+        // }
+
         if(CHECK_GETS == 0)
         {
+            PORTB.2 = ~PORTB.2;
+            
             UCSR1B &= ~(1<<RXEN1);
             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
             UCSR1B |=(1<<RXEN1);
@@ -365,41 +511,31 @@ void main(void)
             a_buff = (float)angularV/1000;
             
             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+
+            // if(SRF02_CONVERTING_FLAG == 1 && SRF02_WAIT_FLAG == 1){
+            //     us_range[0] = Get_SRF02_Range(0xE0);
+
+            //     us_range[0] = ( tau * pre_us_range[0] + ts * us_range[0] ) / (tau + ts) ;
+
+            //     SRF02_CONVERTING_FLAG = 0;
+            //     SRF02_WAIT_FLAG = 0;
+            // }
+
             //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
-            //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
-            
-            //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-
-            if((past_velocity_R==0) && (velocity_R != 0))
-            {
-                RTU_WriteOperate0(R,(unsigned int)120,START);
-                delay_ms(5);
-            }
-            else if((past_velocity_R!=0) && (velocity_R == 0))
-            {
-                RTU_WriteOperate0(R,(unsigned int)120,STOP);
-                delay_ms(5); 
-            }
-
-            if((past_velocity_L==0) && (velocity_L != 0))
-            {
-                RTU_WriteOperate0(L,(unsigned int)120,START);
-                delay_ms(5);
-            }
-            else if((past_velocity_L!=0) && (velocity_L == 0))kpu
-            {
-                RTU_WriteOperate0(L,(unsigned int)120,STOP);
-                delay_ms(5); 
-            }
+            // sprintf(BUFF,"<%d,%d,%d>", velocity_R, velocity_L, us_range[0]);
+            // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
 
             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
             delay_ms(5);
 
             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
             delay_ms(5);
+            
+            RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
+            delay_ms(5);
 
-            past_velocity_R = velocity_R;
-            past_velocity_L = velocity_L;
-        } 
+            RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
+            delay_ms(5);
+        }
     }
 }
