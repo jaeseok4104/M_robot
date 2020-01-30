@@ -1122,7 +1122,7 @@ _0x4C:
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 	.DB  0x0,0x0,0x0,0x0
-_0x59:
+_0x5F:
 	.DB  0x0,0x0,0x0,0x0,0x0,0x0
 _0x0:
 	.DB  0x3C,0x25,0x64,0x2C,0x25,0x64,0x3E,0x0
@@ -1137,7 +1137,7 @@ _0x2080000:
 __GLOBAL_INI_TBL:
 	.DW  0x06
 	.DW  0x04
-	.DW  _0x59*2
+	.DW  _0x5F*2
 
 	.DW  0x01
 	.DW  __seed_G104
@@ -1347,10 +1347,17 @@ _timer2_init:
 	RET
 ;void timer0_init(void)
 ; 0000 003E {
+_timer0_init:
 ; 0000 003F     TCCR0 = (1<<WGM01)|(1<<CS02)|(1<<CS01)|(1<<CS00); // CTC모드, 1024분주
-; 0000 0040     OCR0 = 40;
+	LDI  R30,LOW(15)
+	OUT  0x33,R30
+; 0000 0040     OCR0 =
 ; 0000 0041     TIMSK = (1<<OCIE2)|(1<<OCIE0);
+	LDI  R30,LOW(130)
+	OUT  0x37,R30
+	OUT  0x31,R30
 ; 0000 0042 }
+	RET
 ;
 ;void putch_USART1(char data)
 ; 0000 0045 {
@@ -1937,7 +1944,7 @@ _timer2_comp:
 ; 0000 0146     TIMER2_OVERFLOW++;
 	INC  R5
 ; 0000 0147 }
-	RJMP _0x58
+	RJMP _0x5E
 ;
 ;interrupt [TIM0_COMP] void timer0_comp(void)
 ; 0000 014A {
@@ -1947,7 +1954,7 @@ _timer0_comp:
 ; 0000 014B     TIMER0_OVERFLOW++;
 	INC  R7
 ; 0000 014C }
-_0x58:
+_0x5E:
 	OUT  SREG,R30
 	LD   R30,Y+
 	RETI
@@ -2005,30 +2012,44 @@ _main:
 	RCALL _usart0_init
 ; 0000 0160     timer2_init();
 	RCALL _timer2_init
-; 0000 0161     SREG |= 0x80;
+; 0000 0161     timer0_init();
+	RCALL _timer0_init
+; 0000 0162     SREG |= 0x80;
 	BSET 7
-; 0000 0162     DDRB.1 = 1;
+; 0000 0163     DDRB.1 = 1;
 	SBI  0x17,1
-; 0000 0163     PORTB.1 = 0;
+; 0000 0164     PORTB.1 = 0;
 	CBI  0x18,1
-; 0000 0164     delay_ms(5000);
+; 0000 0165     DDRB.2 = 1;
+	SBI  0x17,2
+; 0000 0166     delay_ms(5000);
 	LDI  R30,LOW(5000)
 	LDI  R31,HIGH(5000)
 	CALL SUBOPT_0x6
-; 0000 0165 
-; 0000 0166     while(1)
-_0x51:
-; 0000 0167     {
-; 0000 0168         if(CHECK_GETS == 0)
+; 0000 0167     PORTB.2 = 1;
+	SBI  0x18,2
+; 0000 0168     while(1)
+_0x55:
+; 0000 0169     {
+; 0000 016A         if(CHECK_GETS == 0)
 	TST  R9
 	BREQ PC+3
-	JMP _0x54
-; 0000 0169         {
-; 0000 016A             UCSR1B &= ~(1<<RXEN1);
+	JMP _0x58
+; 0000 016B         {
+; 0000 016C             PORTB.2 = ~PORTB.2;
+	SBIS 0x18,2
+	RJMP _0x59
+	CBI  0x18,2
+	RJMP _0x5A
+_0x59:
+	SBI  0x18,2
+_0x5A:
+; 0000 016D 
+; 0000 016E             UCSR1B &= ~(1<<RXEN1);
 	LDS  R30,154
 	ANDI R30,0xEF
 	STS  154,R30
-; 0000 016B             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
+; 0000 016F             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
 	LDI  R30,LOW(_VELOCITY_BUFF)
 	LDI  R31,HIGH(_VELOCITY_BUFF)
 	ST   -Y,R31
@@ -2055,21 +2076,21 @@ _0x51:
 	POP  R19
 	POP  R16
 	POP  R17
-; 0000 016C             UCSR1B |=(1<<RXEN1);
+; 0000 0170             UCSR1B |=(1<<RXEN1);
 	LDS  R30,154
 	ORI  R30,0x10
 	STS  154,R30
-; 0000 016D 
-; 0000 016E             v_buff = (float)velocity/1000;
+; 0000 0171 
+; 0000 0172             v_buff = (float)velocity/1000;
 	MOVW R30,R16
 	CALL SUBOPT_0x7
 	__PUTD1SX 108
-; 0000 016F             a_buff = (float)angularV/1000;
+; 0000 0173             a_buff = (float)angularV/1000;
 	MOVW R30,R18
 	CALL SUBOPT_0x7
 	__PUTD1SX 112
-; 0000 0170 
-; 0000 0171             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+; 0000 0174 
+; 0000 0175             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 	MOVW R30,R28
 	SUBI R30,LOW(-(108))
 	SBCI R31,HIGH(-(108))
@@ -2095,19 +2116,19 @@ _0x51:
 	RCALL _Make_MSPEED
 	POP  R20
 	POP  R21
-; 0000 0172             //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
-; 0000 0173             //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
-; 0000 0174 
-; 0000 0175             //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-; 0000 0176 
-; 0000 0177 
-; 0000 0178             past_velocity_R = velocity_R;
+; 0000 0176             //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
+; 0000 0177             //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
+; 0000 0178 
+; 0000 0179             //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
+; 0000 017A 
+; 0000 017B 
+; 0000 017C             past_velocity_R = velocity_R;
 	__PUTWSRX 20,21,104
-; 0000 0179             past_velocity_L = velocity_L;
+; 0000 017D             past_velocity_L = velocity_L;
 	__GETW1SX 106
 	__PUTW1SX 102
-; 0000 017A 
-; 0000 017B             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+; 0000 017E 
+; 0000 017F             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
 	LDI  R30,LOW(1)
 	ST   -Y,R30
 	LDI  R30,LOW(121)
@@ -2117,9 +2138,9 @@ _0x51:
 	ST   -Y,R21
 	ST   -Y,R20
 	CALL SUBOPT_0x8
-; 0000 017C             delay_ms(5);
-; 0000 017D 
-; 0000 017E             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
+; 0000 0180             delay_ms(1);
+; 0000 0181 
+; 0000 0182             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
 	LDI  R30,LOW(2)
 	ST   -Y,R30
 	LDI  R30,LOW(121)
@@ -2129,24 +2150,24 @@ _0x51:
 	__GETW1SX 109
 	CALL __ANEGW1
 	CALL SUBOPT_0x9
-; 0000 017F             delay_ms(5);
-; 0000 0180 
-; 0000 0181             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
+; 0000 0183             delay_ms(1);
+; 0000 0184 
+; 0000 0185             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
 	LDI  R30,LOW(1)
 	CALL SUBOPT_0xA
-; 0000 0182             delay_ms(5);
-; 0000 0183 
-; 0000 0184             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
+; 0000 0186             delay_ms(1);
+; 0000 0187 
+; 0000 0188             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
 	LDI  R30,LOW(2)
 	CALL SUBOPT_0xA
-; 0000 0185             delay_ms(5);
-; 0000 0186         }
-; 0000 0187     }
-_0x54:
-	RJMP _0x51
-; 0000 0188 }
-_0x55:
+; 0000 0189             delay_ms(1);
+; 0000 018A         }
+; 0000 018B     }
+_0x58:
 	RJMP _0x55
+; 0000 018C }
+_0x5B:
+	RJMP _0x5B
 	#ifndef __SLEEP_DEFINED__
 	#define __SLEEP_DEFINED__
 	.EQU __se_bit=0x20
@@ -2730,8 +2751,8 @@ SUBOPT_0x7:
 ;OPTIMIZER ADDED SUBROUTINE, CALLED 4 TIMES, CODE SIZE REDUCTION:9 WORDS
 SUBOPT_0x8:
 	CALL _RTU_WriteOperate0
-	LDI  R30,LOW(5)
-	LDI  R31,HIGH(5)
+	LDI  R30,LOW(1)
+	LDI  R31,HIGH(1)
 	RJMP SUBOPT_0x6
 
 ;OPTIMIZER ADDED SUBROUTINE, CALLED 3 TIMES, CODE SIZE REDUCTION:1 WORDS

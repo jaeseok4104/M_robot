@@ -61,7 +61,7 @@ void timer2_init(void)
 void timer0_init(void)
 {
     TCCR0 = (1<<WGM01)|(1<<CS02)|(1<<CS01)|(1<<CS00); // CTC모드, 1024분주
-    OCR0 = 40;
+    OCR0 = 144
     TIMSK = (1<<OCIE2)|(1<<OCIE0);
 }
 
@@ -350,15 +350,23 @@ void main(void)
     usart1_init(bps_115200);
     usart0_init(bps_115200);
     timer2_init();
+    timer0_init();
     SREG |= 0x80;
     DDRB.1 = 1;
     PORTB.1 = 0;
+    DDRB.2 = 1;
+    DDRB.3 = 1;
     delay_ms(5000);
-    
+    PORTB.2 = 1;
     while(1)
     {
         if(CHECK_GETS == 0)
         {
+            TIMER0_OVERFLOW = 0;
+            TCNT0 = 0;
+            
+            PORTB.2 = ~PORTB.2;
+
             UCSR1B &= ~(1<<RXEN1);
             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
             UCSR1B |=(1<<RXEN1);
@@ -377,16 +385,16 @@ void main(void)
             past_velocity_L = velocity_L;
 
             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-            delay_ms(5);
+            delay_ms(1);
 
             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-            delay_ms(5);
+            delay_ms(1);
             
             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
-            delay_ms(5);
+            delay_ms(1);
 
             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
-            delay_ms(5);
+            delay_ms(1);
         } 
     }
 }
