@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.1.30  C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm Fri Jan 17 16:53:27 2020
+AVRASM ver. 2.1.30  C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm Thu Jan 30 10:02:00 2020
 
 C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1061): warning: Register r5 already defined by the .DEF directive
 C:\Users\ekzm5\Work\AVR\M_robot\List\M_robot.asm(1062): warning: Register r4 already defined by the .DEF directive
