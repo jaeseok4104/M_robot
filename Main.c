@@ -43,7 +43,7 @@ unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
 unsigned char PACKET_BUFF_IDX = 0;
 
-unsigned char TIMER0_OVERFLOW = 0;
+unsigned int TIMER0_OVERFLOW = 0;
 unsigned char VELOCITY_BUFF[20] = {0,};
 unsigned char VELOCITY_BUFF_IDX = 0;
 
@@ -485,11 +485,9 @@ void main(void)
     timer2_init();
     SREG |= 0x80;
 
-    DDRB.1 = 1;
-    DDRB.2 = 1;
-    delay_ms(2500);
+    delay_ms(5000);
     
-    SRF02_CONVERTING_FLAG = 0;
+    // SRF02_CONVERTING_FLAG = 0;
     while(1)
     {
         // if(SRF02_WAIT_FLAG == 0){
@@ -500,9 +498,7 @@ void main(void)
         // }
 
         if(CHECK_GETS == 0)
-        {
-            PORTB.2 = ~PORTB.2;
-            
+        {   
             UCSR1B &= ~(1<<RXEN1);
             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
             UCSR1B |=(1<<RXEN1);
@@ -521,21 +517,20 @@ void main(void)
             //     SRF02_WAIT_FLAG = 0;
             // }
 
-            //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
-            // sprintf(BUFF,"<%d,%d,%d>", velocity_R, velocity_L, us_range[0]);
-            // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
+            sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
+            puts_USART1(BUFF,VELOCITY_BUFF_IDX);
 
             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-            delay_ms(5);
+            delay_ms(3);
 
             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-            delay_ms(5);
+            delay_ms(3);
             
             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
-            delay_ms(5);
+            delay_ms(3);
 
             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
-            delay_ms(5);
+            delay_ms(3);
         }
     }
 }

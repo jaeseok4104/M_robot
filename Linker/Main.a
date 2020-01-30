@@ -67,7 +67,7 @@
 ;unsigned char PACKET_BUFF[100] = {0,};
 ;unsigned char PACKET_BUFF_IDX = 0;
 ;
-;unsigned char TIMER0_OVERFLOW = 0;
+;unsigned int TIMER0_OVERFLOW = 0;
 ;unsigned char VELOCITY_BUFF[20] = {0,};
 ;unsigned char VELOCITY_BUFF_IDX = 0;
 ;
@@ -1592,26 +1592,28 @@
 ;PCODE: $00000427 VOL: 0
 ; 0000 01C6     TIMER0_OVERFLOW++;
 ;PCODE: $00000428 VOL: 0
-; 0000 01C7 }
 ;PCODE: $00000429 VOL: 0
 ;PCODE: $0000042A VOL: 0
+; 0000 01C7 }
 ;PCODE: $0000042B VOL: 0
+;PCODE: $0000042C VOL: 0
+;PCODE: $0000042D VOL: 0
 ;
 ;interrupt [TIM1_COMPB] void timer1_compb(void)
 ; 0000 01CA {
-;PCODE: $0000042C VOL: 0
-;PCODE: $0000042D VOL: 0
-; 0000 01CB     SRF02_CONVERTING_FLAG = 1;
 ;PCODE: $0000042E VOL: 0
 ;PCODE: $0000042F VOL: 0
-; 0000 01CC }
+; 0000 01CB     SRF02_CONVERTING_FLAG = 1;
 ;PCODE: $00000430 VOL: 0
 ;PCODE: $00000431 VOL: 0
+; 0000 01CC }
 ;PCODE: $00000432 VOL: 0
+;PCODE: $00000433 VOL: 0
+;PCODE: $00000434 VOL: 0
 ;
 ;void main(void)
 ; 0000 01CF {
-;PCODE: $00000433 VOL: 0
+;PCODE: $00000435 VOL: 0
 ; 0000 01D0     float a_buff;
 ; 0000 01D1     float v_buff;
 ; 0000 01D2 
@@ -1632,11 +1634,11 @@
 ; 0000 01E1     unsigned char pre_us_range[10] = {0,};
 ; 0000 01E2 
 ; 0000 01E3     usart1_init(bps_115200);
-;PCODE: $00000434 VOL: 0
-;PCODE: $00000435 VOL: 0
 ;PCODE: $00000436 VOL: 0
 ;PCODE: $00000437 VOL: 0
 ;PCODE: $00000438 VOL: 0
+;PCODE: $00000439 VOL: 0
+;PCODE: $0000043A VOL: 0
 ;	a_buff -> Y+148
 ;	v_buff -> Y+144
 ;	velocity -> R16,R17
@@ -1651,8 +1653,6 @@
 ;	USID -> Y+20
 ;	us_range -> Y+10
 ;	pre_us_range -> Y+0
-;PCODE: $00000439 VOL: 0
-;PCODE: $0000043A VOL: 0
 ;PCODE: $0000043B VOL: 0
 ;PCODE: $0000043C VOL: 0
 ;PCODE: $0000043D VOL: 0
@@ -1660,43 +1660,42 @@
 ;PCODE: $0000043F VOL: 0
 ;PCODE: $00000440 VOL: 0
 ;PCODE: $00000441 VOL: 0
-; 0000 01E4     usart0_init(bps_115200);
 ;PCODE: $00000442 VOL: 0
 ;PCODE: $00000443 VOL: 0
+; 0000 01E4     usart0_init(bps_115200);
 ;PCODE: $00000444 VOL: 0
-; 0000 01E5     timer2_init();
 ;PCODE: $00000445 VOL: 0
-; 0000 01E6     SREG |= 0x80;
 ;PCODE: $00000446 VOL: 0
-; 0000 01E7 
-; 0000 01E8     DDRB.1 = 1;
+; 0000 01E5     timer2_init();
 ;PCODE: $00000447 VOL: 0
+; 0000 01E6     SREG |= 0x80;
 ;PCODE: $00000448 VOL: 0
-; 0000 01E9     DDRB.2 = 1;
+; 0000 01E7 
+; 0000 01E8     delay_ms(5000);
 ;PCODE: $00000449 VOL: 0
 ;PCODE: $0000044A VOL: 0
-; 0000 01EA     delay_ms(2500);
 ;PCODE: $0000044B VOL: 0
+; 0000 01E9 
+; 0000 01EA     // SRF02_CONVERTING_FLAG = 0;
+; 0000 01EB     while(1)
 ;PCODE: $0000044C VOL: 0
+; 0000 01EC     {
+; 0000 01ED         // if(SRF02_WAIT_FLAG == 0){
+; 0000 01EE         //     Start_SRF02_Conv(USID[0],Centimeters);
+; 0000 01EF         //     TCNT1H = 0;
+; 0000 01F0         //     TCNT1L = 0;
+; 0000 01F1         //     SRF02_WAIT_FLAG = 1;
+; 0000 01F2         // }
+; 0000 01F3 
+; 0000 01F4         if(CHECK_GETS == 0)
 ;PCODE: $0000044D VOL: 0
-; 0000 01EB 
-; 0000 01EC     SRF02_CONVERTING_FLAG = 0;
 ;PCODE: $0000044E VOL: 0
-; 0000 01ED     while(1)
+; 0000 01F5         {
+; 0000 01F6             UCSR1B &= ~(1<<RXEN1);
 ;PCODE: $0000044F VOL: 0
-; 0000 01EE     {
-; 0000 01EF         // if(SRF02_WAIT_FLAG == 0){
-; 0000 01F0         //     Start_SRF02_Conv(USID[0],Centimeters);
-; 0000 01F1         //     TCNT1H = 0;
-; 0000 01F2         //     TCNT1L = 0;
-; 0000 01F3         //     SRF02_WAIT_FLAG = 1;
-; 0000 01F4         // }
-; 0000 01F5 
-; 0000 01F6         if(CHECK_GETS == 0)
 ;PCODE: $00000450 VOL: 0
 ;PCODE: $00000451 VOL: 0
-; 0000 01F7         {
-; 0000 01F8             PORTB.2 = ~PORTB.2;
+; 0000 01F7             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
 ;PCODE: $00000452 VOL: 0
 ;PCODE: $00000453 VOL: 0
 ;PCODE: $00000454 VOL: 0
@@ -1707,12 +1706,9 @@
 ;PCODE: $00000459 VOL: 0
 ;PCODE: $0000045A VOL: 0
 ;PCODE: $0000045B VOL: 0
-; 0000 01F9 
-; 0000 01FA             UCSR1B &= ~(1<<RXEN1);
 ;PCODE: $0000045C VOL: 0
 ;PCODE: $0000045D VOL: 0
 ;PCODE: $0000045E VOL: 0
-; 0000 01FB             sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
 ;PCODE: $0000045F VOL: 0
 ;PCODE: $00000460 VOL: 0
 ;PCODE: $00000461 VOL: 0
@@ -1723,41 +1719,52 @@
 ;PCODE: $00000466 VOL: 0
 ;PCODE: $00000467 VOL: 0
 ;PCODE: $00000468 VOL: 0
+; 0000 01F8             UCSR1B |=(1<<RXEN1);
 ;PCODE: $00000469 VOL: 0
 ;PCODE: $0000046A VOL: 0
 ;PCODE: $0000046B VOL: 0
+; 0000 01F9 
+; 0000 01FA             v_buff = (float)velocity/1000;
 ;PCODE: $0000046C VOL: 0
 ;PCODE: $0000046D VOL: 0
 ;PCODE: $0000046E VOL: 0
 ;PCODE: $0000046F VOL: 0
 ;PCODE: $00000470 VOL: 0
 ;PCODE: $00000471 VOL: 0
+; 0000 01FB             a_buff = (float)angularV/1000;
 ;PCODE: $00000472 VOL: 0
 ;PCODE: $00000473 VOL: 0
 ;PCODE: $00000474 VOL: 0
 ;PCODE: $00000475 VOL: 0
-; 0000 01FC             UCSR1B |=(1<<RXEN1);
 ;PCODE: $00000476 VOL: 0
 ;PCODE: $00000477 VOL: 0
+; 0000 01FC 
+; 0000 01FD             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 ;PCODE: $00000478 VOL: 0
-; 0000 01FD 
-; 0000 01FE             v_buff = (float)velocity/1000;
 ;PCODE: $00000479 VOL: 0
 ;PCODE: $0000047A VOL: 0
 ;PCODE: $0000047B VOL: 0
 ;PCODE: $0000047C VOL: 0
 ;PCODE: $0000047D VOL: 0
 ;PCODE: $0000047E VOL: 0
-; 0000 01FF             a_buff = (float)angularV/1000;
 ;PCODE: $0000047F VOL: 0
 ;PCODE: $00000480 VOL: 0
 ;PCODE: $00000481 VOL: 0
 ;PCODE: $00000482 VOL: 0
 ;PCODE: $00000483 VOL: 0
 ;PCODE: $00000484 VOL: 0
-; 0000 0200 
-; 0000 0201             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 ;PCODE: $00000485 VOL: 0
+; 0000 01FE 
+; 0000 01FF             // if(SRF02_CONVERTING_FLAG == 1 && SRF02_WAIT_FLAG == 1){
+; 0000 0200             //     us_range[0] = Get_SRF02_Range(0xE0);
+; 0000 0201 
+; 0000 0202             //     us_range[0] = ( tau * pre_us_range[0] + ts * us_range[0] ) / (tau + ts) ;
+; 0000 0203 
+; 0000 0204             //     SRF02_CONVERTING_FLAG = 0;
+; 0000 0205             //     SRF02_WAIT_FLAG = 0;
+; 0000 0206             // }
+; 0000 0207 
+; 0000 0208             sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
 ;PCODE: $00000486 VOL: 0
 ;PCODE: $00000487 VOL: 0
 ;PCODE: $00000488 VOL: 0
@@ -1771,78 +1778,70 @@
 ;PCODE: $00000490 VOL: 0
 ;PCODE: $00000491 VOL: 0
 ;PCODE: $00000492 VOL: 0
-; 0000 0202 
-; 0000 0203             // if(SRF02_CONVERTING_FLAG == 1 && SRF02_WAIT_FLAG == 1){
-; 0000 0204             //     us_range[0] = Get_SRF02_Range(0xE0);
-; 0000 0205 
-; 0000 0206             //     us_range[0] = ( tau * pre_us_range[0] + ts * us_range[0] ) / (tau + ts) ;
-; 0000 0207 
-; 0000 0208             //     SRF02_CONVERTING_FLAG = 0;
-; 0000 0209             //     SRF02_WAIT_FLAG = 0;
-; 0000 020A             // }
-; 0000 020B 
-; 0000 020C             //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
-; 0000 020D             // sprintf(BUFF,"<%d,%d,%d>", velocity_R, velocity_L, us_range[0]);
-; 0000 020E             // puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-; 0000 020F 
-; 0000 0210             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+; 0000 0209             puts_USART1(BUFF,VELOCITY_BUFF_IDX);
 ;PCODE: $00000493 VOL: 0
 ;PCODE: $00000494 VOL: 0
 ;PCODE: $00000495 VOL: 0
 ;PCODE: $00000496 VOL: 0
+; 0000 020A 
+; 0000 020B             RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
 ;PCODE: $00000497 VOL: 0
 ;PCODE: $00000498 VOL: 0
-; 0000 0211             delay_ms(5);
 ;PCODE: $00000499 VOL: 0
 ;PCODE: $0000049A VOL: 0
 ;PCODE: $0000049B VOL: 0
-; 0000 0212 
-; 0000 0213             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
 ;PCODE: $0000049C VOL: 0
+; 0000 020C             delay_ms(3);
 ;PCODE: $0000049D VOL: 0
 ;PCODE: $0000049E VOL: 0
 ;PCODE: $0000049F VOL: 0
+; 0000 020D 
+; 0000 020E             RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
 ;PCODE: $000004A0 VOL: 0
 ;PCODE: $000004A1 VOL: 0
 ;PCODE: $000004A2 VOL: 0
 ;PCODE: $000004A3 VOL: 0
-; 0000 0214             delay_ms(5);
 ;PCODE: $000004A4 VOL: 0
 ;PCODE: $000004A5 VOL: 0
 ;PCODE: $000004A6 VOL: 0
-; 0000 0215 
-; 0000 0216             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
 ;PCODE: $000004A7 VOL: 0
+; 0000 020F             delay_ms(3);
 ;PCODE: $000004A8 VOL: 0
 ;PCODE: $000004A9 VOL: 0
 ;PCODE: $000004AA VOL: 0
+; 0000 0210 
+; 0000 0211             RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
 ;PCODE: $000004AB VOL: 0
 ;PCODE: $000004AC VOL: 0
 ;PCODE: $000004AD VOL: 0
-; 0000 0217             delay_ms(5);
 ;PCODE: $000004AE VOL: 0
 ;PCODE: $000004AF VOL: 0
 ;PCODE: $000004B0 VOL: 0
-; 0000 0218 
-; 0000 0219             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
 ;PCODE: $000004B1 VOL: 0
+; 0000 0212             delay_ms(3);
 ;PCODE: $000004B2 VOL: 0
 ;PCODE: $000004B3 VOL: 0
 ;PCODE: $000004B4 VOL: 0
+; 0000 0213 
+; 0000 0214             RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
 ;PCODE: $000004B5 VOL: 0
 ;PCODE: $000004B6 VOL: 0
 ;PCODE: $000004B7 VOL: 0
-; 0000 021A             delay_ms(5);
 ;PCODE: $000004B8 VOL: 0
 ;PCODE: $000004B9 VOL: 0
 ;PCODE: $000004BA VOL: 0
-; 0000 021B         }
-; 0000 021C     }
 ;PCODE: $000004BB VOL: 0
+; 0000 0215             delay_ms(3);
 ;PCODE: $000004BC VOL: 0
 ;PCODE: $000004BD VOL: 0
-; 0000 021D }
 ;PCODE: $000004BE VOL: 0
+; 0000 0216         }
+; 0000 0217     }
 ;PCODE: $000004BF VOL: 0
 ;PCODE: $000004C0 VOL: 0
 ;PCODE: $000004C1 VOL: 0
+; 0000 0218 }
+;PCODE: $000004C2 VOL: 0
+;PCODE: $000004C3 VOL: 0
+;PCODE: $000004C4 VOL: 0
+;PCODE: $000004C5 VOL: 0

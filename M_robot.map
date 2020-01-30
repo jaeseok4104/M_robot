@@ -14,8 +14,8 @@ Variable                                                          Register  Size
 --------------------------------------------------------------------------------
 TIMER2_OVERFLOW                                                   R5           1
 PACKET_BUFF_IDX                                                   R4           1
-TIMER0_OVERFLOW                                                   R7           1
-VELOCITY_BUFF_IDX                                                 R6           1
-SRF02_CONVERTING_FLAG                                             R9           1
-SRF02_WAIT_FLAG                                                   R8           1
-CHECK_GETS                                                        R11          1
+TIMER0_OVERFLOW                                                   R6,R7        2
+VELOCITY_BUFF_IDX                                                 R9           1
+SRF02_CONVERTING_FLAG                                             R8           1
+SRF02_WAIT_FLAG                                                   R11          1
+CHECK_GETS                                                        R10          1
