@@ -1,4 +1,4 @@
-VERSION:3 SOURCE_TIMESTAMP:503E817B
+VERSION:3 SOURCE_TIMESTAMP:503F85B1
 NODE:I LEVEL:0 LINE:1 "C:\cvavreval\inc\mega128.h"
 NODE:I LEVEL:0 LINE:2 "C:\cvavreval\inc\stdio.h"
 NODE:I LEVEL:0 LINE:3 "C:\cvavreval\inc\delay.h"
@@ -34,9 +34,9 @@ NODE:F LEVEL:0 LINE:158 "RTU_WriteOperate0(unsigned char device_address,int star
 NODE:F LEVEL:0 LINE:186 "RTU_WriteOperate1(unsigned char device_address,int starting_address,int data)"
 NODE:F LEVEL:0 LINE:214 "RTU_ReedOperate0(unsigned char device_address,int starting_address,int data)"
 NODE:F LEVEL:0 LINE:242 "Make_MSPEED(float * _velocity,float * _angularV,int * R_RPM,int * L_RPM)"
-NODE:F LEVEL:0 LINE:262 "oper_Disapath(int velocityR,int velocityL,int p_velocity_R,int p_velocity_L)"
-NODE:F LEVEL:0 LINE:286 "usart0_rxc(void)"
-NODE:F LEVEL:0 LINE:303 "usart1_rxc(void)"
-NODE:F LEVEL:0 LINE:324 "timer2_comp(void)"
-NODE:F LEVEL:0 LINE:329 "timer0_comp(void)"
-NODE:F LEVEL:0 LINE:334 "main(void)"
+NODE:F LEVEL:0 LINE:263 "oper_Disapath(int velocity_R,int velocity_L)"
+NODE:F LEVEL:0 LINE:278 "usart0_rxc(void)"
+NODE:F LEVEL:0 LINE:295 "usart1_rxc(void)"
+NODE:F LEVEL:0 LINE:316 "timer2_comp(void)"
+NODE:F LEVEL:0 LINE:321 "timer0_comp(void)"
+NODE:F LEVEL:0 LINE:326 "main(void)"

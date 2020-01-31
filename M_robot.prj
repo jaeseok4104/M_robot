@@ -117,7 +117,7 @@ LinkerWarnings=1
 DebugBootLoader=0
 WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
-Build=336
+Build=342
 =======
 Build=131
 >>>>>>> test
@@ -256,7 +256,7 @@ CheckSignature=1
 CheckErasure=0
 PreserveEEPROM=0
 VerifyProgramming=1
-ProgrammingCounter=122
+ProgrammingCounter=133
 RunUserProg=0
 UserProgPath=
 UserProgCmdLine=
@@ -267,10 +267,11 @@ UserProgPath=
 UserProgCmdLine=
 UserProgWorkDir=
 [BookmarksFoldedCode]
-Files=1
+Files=2
 F1=Main.c
+F2=C:\cvavreval\inc\mega128.h
 [Bookmarks1]
-TimeStamp=1346273347
+TimeStamp=1346273659
 Row=0
 Column=0
 ScrollPosX=0
@@ -290,8 +291,26 @@ Row=0
 Column=0
 ScrollPosX=0
 ScrollPosY=0
-TimeStamp=1345424058
+TimeStamp=1346330474
 [FoldedCode1]
+Blocks=0
+[Bookmarks2]
+TimeStamp=1332611316
+Row=14
+Column=46
+ScrollPosX=0
+ScrollPosY=0
+BK0=-1
+BK1=-1
+BK2=-1
+BK3=-1
+BK4=-1
+BK5=-1
+BK6=-1
+BK7=-1
+BK8=-1
+BK9=-1
+[FoldedCode2]
 Blocks=0
 [HeadersList]
 Files=1
