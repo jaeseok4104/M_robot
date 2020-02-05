@@ -17,7 +17,7 @@
 #define STOP 2
 
 #define Length 0.29
-#define Gearratio 25
+#define Gearratio 20
 
 unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
@@ -27,6 +27,9 @@ unsigned int TIMER0_OVERFLOW = 0;
 unsigned char VELOCITY_BUFF[20] = {0,};
 unsigned char VELOCITY_BUFF_IDX = 0;
 unsigned char CHECK_GETS = 0;
+
+unsigned char CHECK_CONTROL = 0;
+unsigned int TIMER1_OVERFLOW = 0;
 
 void usart1_init(int bps)
 {
@@ -63,6 +66,16 @@ void timer0_init(void)
 {
     TCCR0 = (1<<CS02)|(1<<CS01)|(1<<CS00); // CTC모드, 1024분주
     TIMSK = (1<<OCIE2)|(1<<TOIE0);
+}
+
+void timer1_init(void)
+{
+    // TCCR1A = (1<<COM1B0);
+    TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS12)|(1<<CS10);; // WGM bit setting
+
+    OCR1B = 255;
+    ICR1 = 1200;
+    TIMSK |= (1<<OCIE1B);
 }
 
 void putch_USART1(char data)
@@ -298,17 +311,6 @@ int get_RPM(char *str,char IDX, int* goal)
     return RPM;
 }
 
-// void get_motorSpeed(int* velocity_R, int* velocity_L)
-// {
-//     RTU_ReedOperate0(R,(unsigned int)3,(unsigned int)2);
-//     delay_ms(1);
-//     puts_Modbus1(PACKET_BUFF,PACKET_BUFF_IDX);
-//     delay_ms(1); 
-//     RTU_ReedOperate0(R,(unsigned int)3,(unsigned int)2);
-//     delay_ms(1);
-//     puts_Modbus1(PACKET_BUFF,PACKET_BUFF_IDX);   
-// }
-
 interrupt [USART0_RXC] void usart0_rxc(void)
 {
     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
@@ -357,6 +359,14 @@ interrupt [TIM0_OVF] void timer0_ovf(void)
     TIMER0_OVERFLOW++;
 }
 
+
+interrupt [TIM1_COMPB] void timer0_comp(void)
+{
+    TIMER1_OVERFLOW++;
+    TCNT1H = 0x00;
+    TCNT1L = 0x00;
+}
+
 void main(void)
 {
     float a_buff;
@@ -368,6 +378,7 @@ void main(void)
     int velocity_L = 0;
     int past_velocity_R = 0;
     int past_velocity_L = 0;
+    int del_ms = 0;
     
     // int current_R = 0;
     // int current_L = 0;
@@ -383,6 +394,9 @@ void main(void)
     float d_x = 0;
     float d_y = 0;
     float d_angular = 0;
+
+    float TIMER1_TIME = 0;
+    float TIMER0_TIME = 0;
     
     unsigned char BUFF[100] = {0,};
 
@@ -390,6 +404,7 @@ void main(void)
     usart0_init(bps_115200);
     timer2_init();
     timer0_init();
+    timer1_init();
     SREG |= 0x80;
     DDRB.1 = 1;
     DDRB.2 = 1;
@@ -403,42 +418,48 @@ void main(void)
     while(1)
     {
         if(CHECK_GETS)
-        {
-            // TIMER0_OVERFLOW = 0;
-            // TCNT0 = 0;
-            
+        {            
             PORTB.1 = 1;
             
             UCSR1B &= ~(1<<RXEN1);
-            sscanf(VELOCITY_BUFF,"<%d,%d>", &velocity, &angularV);
+            sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
             
             v_buff = (float)velocity/1000;
             a_buff = (float)angularV/1000;
             
             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
-            //sprintf(BUFF,"<%.2f,%.f2>", v_buff, a_buff);
-            //sprintf(BUFF,"<%d,%d>", velocity_R, velocity_L);
-            //puts_USART1(BUFF,VELOCITY_BUFF_IDX);
-
-            past_velocity_R = velocity_R;
-            past_velocity_L = velocity_L;
 
             oper_Disapath(velocity_R, velocity_L);
-            
+            // oper_Disapath(velocity, -velocity);
+
+            TIMER1_TIME = 0;
+            TIMER1_OVERFLOW = 0;
+            TCNT1L = 0;            
+
             CHECK_GETS = 0;
             UCSR1B |=(1<<RXEN1);
-            PORTB.1 = 0;
+            // PORTB.1 = 0;
+        }
+
+        TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
+
+        if(del_ms<TIMER1_TIME)
+        {
+            oper_Disapath(0,0);   
+            TIMER1_OVERFLOW = 0;
+            v_buff = 0;
+            a_buff = 0;
         }
 
         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
         // current_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
-        current_R = (float)get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R)/(152.788*Gearratio);
+        current_R = (float)(get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R)/(152.788*Gearratio));
         delay_ms(5);
         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
         // current_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
-        current_L = -(float)get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L)/(152.788*Gearratio);
+        current_L = -(float)(get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L)/(152.788*Gearratio));
         delay_ms(5);
 
         d_velocity = (current_R + current_L)/2;
@@ -447,15 +468,25 @@ void main(void)
 
         d_angular += (control_time*d_angularV);
 
-        d_x += d_velocity*cos(control_time*d_angularV);
-        d_y += d_velocity*sin(control_time*d_angularV);
-        
         TIMER0_OVERFLOW = 0;
         TCNT0 = 0;
-        // sprintf(BUFF, "%f, %f, %f\n", d_velocity, d_angularV, control_time);
-        sprintf(BUFF, "%f, %f, %f, %f, %f\n", d_x, d_y, d_angular, current_R/1000, current_L/1000);
-        // sprintf(BUFF, "%d, %d\n", current_R, goal_current_R);
-        // sprintf(BUFF, "%d, %d, %d, %d\n", current_R, current_L, goal_current_R, goal_current_L);
-        puts_USART1(BUFF);
+
+        if((d_velocity!=0) ||(d_angularV!=0)){
+            d_x += d_velocity*control_time*cos(control_time*d_angularV);
+            d_y += d_velocity*control_time*sin(control_time*d_angularV);
+        } 
+        TIMER0_TIME += control_time;
+        
+        if(TIMER0_TIME>0.05){
+            // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
+            sprintf(BUFF, "%f, %f, %f, %f, %f\n", d_x, d_y, d_angular, d_velocity, v_buff);
+            // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
+            // sprintf(BUFF, "%d, %d, %d, %d\n", current_R, current_L, goal_current_R, goal_current_L);
+            puts_USART1(BUFF);
+            TIMER0_TIME = 0;
+        }
+
+        current_R = 0;
+        current_L = 0;
     }
 }

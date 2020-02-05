@@ -17,3 +17,5 @@ PACKET_BUFF_IDX                                                   R4           1
 TIMER0_OVERFLOW                                                   R6,R7        2
 VELOCITY_BUFF_IDX                                                 R9           1
 CHECK_GETS                                                        R8           1
+CHECK_CONTROL                                                     R11          1
+TIMER1_OVERFLOW                                                   R12,R13      2
