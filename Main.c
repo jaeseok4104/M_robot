@@ -16,8 +16,10 @@
 #define START 1
 #define STOP 2
 
-#define Length 0.29
+#define Length 0.281
 #define Gearratio 20
+
+#define Circular 57.29                      // 180 / PI
 
 unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
@@ -380,10 +382,10 @@ void main(void)
     int past_velocity_L = 0;
     int del_ms = 0;
     
-    // int current_R = 0;
-    // int current_L = 0;
-    float current_R = 0;
-    float current_L = 0;
+    int currentRPM_R = 0;
+    int currentRPM_L = 0;
+    float currentV_R = 0;
+    float currentV_L = 0;
     int goal_current_R = 0;
     int goal_current_L = 0;
 
@@ -394,11 +396,16 @@ void main(void)
     float d_x = 0;
     float d_y = 0;
     float d_angular = 0;
+    int d_angular_circula = 0;
+
+    float goal_x = 0;
+    float goal_y = 0;
+    float goal_angular = 0;
 
     float TIMER1_TIME = 0;
     float TIMER0_TIME = 0;
     
-    unsigned char BUFF[100] = {0,};
+    unsigned char BUFF[500] = {0,};
 
     usart1_init(bps_115200);
     usart0_init(bps_115200);
@@ -415,6 +422,7 @@ void main(void)
     
     TIMER0_OVERFLOW = 0;
     TCNT0 = 0;
+
     while(1)
     {
         if(CHECK_GETS)
@@ -423,6 +431,13 @@ void main(void)
             
             UCSR1B &= ~(1<<RXEN1);
             sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+            // sscanf(VELOCITY_BUFF,"<%d,%d,%f,%f,%f>", &velocity, &angularV, &goal_x, &goal_y, goal_angular);
+
+            if(!del_ms){
+                d_x = 0;
+                d_y = 0;
+                d_angular = 0;
+            }
             
             v_buff = (float)velocity/1000;
             a_buff = (float)angularV/1000;
@@ -430,7 +445,6 @@ void main(void)
             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 
             oper_Disapath(velocity_R, velocity_L);
-            // oper_Disapath(velocity, -velocity);
 
             TIMER1_TIME = 0;
             TIMER1_OVERFLOW = 0;
@@ -453,40 +467,41 @@ void main(void)
 
         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
-        // current_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
-        current_R = (float)(get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R)/(152.788*Gearratio));
+        currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
         delay_ms(5);
         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
-        // current_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
-        current_L = -(float)(get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L)/(152.788*Gearratio));
+        currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
         delay_ms(5);
 
-        d_velocity = (current_R + current_L)/2;
-        d_angularV = (2*(current_R-current_L))/Length;
-        control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)* 0.000069444;
+        currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
+        currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
 
-        d_angular += (control_time*d_angularV);
+        d_velocity = (currentV_R + currentV_L)/2;
+        d_angularV = (2*(currentV_R-currentV_L))/Length;
 
+        control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
         TIMER0_OVERFLOW = 0;
         TCNT0 = 0;
 
         if((d_velocity!=0) ||(d_angularV!=0)){
             d_x += d_velocity*control_time*cos(control_time*d_angularV);
             d_y += d_velocity*control_time*sin(control_time*d_angularV);
-        } 
-        TIMER0_TIME += control_time;
-        
-        if(TIMER0_TIME>0.05){
-            // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
-            sprintf(BUFF, "%f, %f, %f, %f, %f\n", d_x, d_y, d_angular, d_velocity, v_buff);
-            // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-            // sprintf(BUFF, "%d, %d, %d, %d\n", current_R, current_L, goal_current_R, goal_current_L);
-            puts_USART1(BUFF);
-            TIMER0_TIME = 0;
+            d_angular += control_time*d_angularV;
+            d_angular_circula = (int)(d_angular*Circular);
         }
 
-        current_R = 0;
-        current_L = 0;
+        TIMER0_TIME += control_time;
+        if(TIMER0_TIME>0.05){
+            sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
+            // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
+            // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
+            // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula/2);
+            // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
+            puts_USART1(BUFF);
+             TIMER0_TIME = 0;
+        }
+
     }
 }
