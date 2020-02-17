@@ -102,23 +102,6 @@ void usart0_init(int bps)
     UBRR0L = (unsigned char)(bps & 0x00ff);
 }
 
-void timer0_init(void)
-{
-    TCCR0 = (1<<WGM01)|(1<<CS02)|(1<<CS01)|(1<<CS00); // CTC모드, 1024분주
-    OCR0 = 40;
-    TIMSK = (1<<OCIE2)|(1<<OCIE0);
-}
-
-void timer1_init(void)
-{
-    // TCCR1A = (1<<COM1B0);
-    TCCR1B = (1<<WGM13)|(1<<WGM12)|(1<<CS12)|(1<<CS10);; // WGM bit setting
-
-    OCR1B = 1008;
-    ICR1 = 1200;//1200; //664
-    TIMSK |= (1<<OCIE1B);
-}
-
 void timer2_init(void)
 {
     //TIMER2
