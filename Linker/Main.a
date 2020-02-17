@@ -873,7 +873,7 @@
 ;PCODE: $0000021F VOL: 0
 ; 0000 0113     }
 ; 0000 0114 
-; 0000 0115     VelocityR = *_velocity+(*_angularV*Length)/4;
+; 0000 0115     VelocityR = *_velocity+(*_angularV*Length)/2;
 ;PCODE: $00000220 VOL: 0
 ;PCODE: $00000221 VOL: 0
 ;PCODE: $00000222 VOL: 0
@@ -888,7 +888,8 @@
 ;PCODE: $0000022B VOL: 0
 ;PCODE: $0000022C VOL: 0
 ;PCODE: $0000022D VOL: 0
-; 0000 0116     VelocityL = *_velocity-(*_angularV*Length)/4;
+; 0000 0116     // VelocityR = *_velocity+(*_angularV*Length)/4;
+; 0000 0117     VelocityL = *_velocity-(*_angularV*Length)/2;
 ;PCODE: $0000022E VOL: 0
 ;PCODE: $0000022F VOL: 0
 ;PCODE: $00000230 VOL: 0
@@ -903,8 +904,9 @@
 ;PCODE: $00000239 VOL: 0
 ;PCODE: $0000023A VOL: 0
 ;PCODE: $0000023B VOL: 0
-; 0000 0117 
-; 0000 0118     *R_RPM = (int)(152.788*VelocityR*Gearratio);
+; 0000 0118     // VelocityL = *_velocity-(*_angularV*Length)/4;
+; 0000 0119 
+; 0000 011A     *R_RPM = (int)(152.788*VelocityR*Gearratio);
 ;PCODE: $0000023C VOL: 0
 ;PCODE: $0000023D VOL: 0
 ;PCODE: $0000023E VOL: 0
@@ -913,7 +915,7 @@
 ;PCODE: $00000241 VOL: 0
 ;PCODE: $00000242 VOL: 0
 ;PCODE: $00000243 VOL: 0
-; 0000 0119     *L_RPM = (int)(152.788*VelocityL*Gearratio);
+; 0000 011B     *L_RPM = (int)(152.788*VelocityL*Gearratio);
 ;PCODE: $00000244 VOL: 0
 ;PCODE: $00000245 VOL: 0
 ;PCODE: $00000246 VOL: 0
@@ -922,8 +924,8 @@
 ;PCODE: $00000249 VOL: 0
 ;PCODE: $0000024A VOL: 0
 ;PCODE: $0000024B VOL: 0
-; 0000 011A 
-; 0000 011B     if( ((*R_RPM<300)&&(*R_RPM>-300))&&((*L_RPM<300)&&(*L_RPM>-300))){
+; 0000 011C 
+; 0000 011D     if( ((*R_RPM<300)&&(*R_RPM>-300))&&((*L_RPM<300)&&(*L_RPM>-300))){
 ;PCODE: $0000024C VOL: 0
 ;PCODE: $0000024D VOL: 0
 ;PCODE: $0000024E VOL: 0
@@ -954,26 +956,26 @@
 ;PCODE: $00000267 VOL: 0
 ;PCODE: $00000268 VOL: 0
 ;PCODE: $00000269 VOL: 0
-; 0000 011C         *R_RPM = 0;
+; 0000 011E         *R_RPM = 0;
 ;PCODE: $0000026A VOL: 0
 ;PCODE: $0000026B VOL: 0
 ;PCODE: $0000026C VOL: 0
-; 0000 011D         *L_RPM = 0;
+; 0000 011F         *L_RPM = 0;
 ;PCODE: $0000026D VOL: 0
 ;PCODE: $0000026E VOL: 0
 ;PCODE: $0000026F VOL: 0
-; 0000 011E     }
-; 0000 011F }
+; 0000 0120     }
+; 0000 0121 }
 ;PCODE: $00000270 VOL: 0
 ;PCODE: $00000271 VOL: 0
 ;PCODE: $00000272 VOL: 0
 ;PCODE: $00000273 VOL: 0
 ;
 ;void oper_Disapath(int velocity_R, int velocity_L)
-; 0000 0122 {
+; 0000 0124 {
 ;PCODE: $00000274 VOL: 0
 ;PCODE: $00000275 VOL: 0
-; 0000 0123     RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
+; 0000 0125     RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
 ;	velocity_R -> Y+2
 ;	velocity_L -> Y+0
 ;PCODE: $00000276 VOL: 0
@@ -983,12 +985,12 @@
 ;PCODE: $0000027A VOL: 0
 ;PCODE: $0000027B VOL: 0
 ;PCODE: $0000027C VOL: 0
-; 0000 0124     delay_ms(5);
+; 0000 0126     delay_ms(5);
 ;PCODE: $0000027D VOL: 0
 ;PCODE: $0000027E VOL: 0
 ;PCODE: $0000027F VOL: 0
-; 0000 0125 
-; 0000 0126     RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
+; 0000 0127 
+; 0000 0128     RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
 ;PCODE: $00000280 VOL: 0
 ;PCODE: $00000281 VOL: 0
 ;PCODE: $00000282 VOL: 0
@@ -997,12 +999,12 @@
 ;PCODE: $00000285 VOL: 0
 ;PCODE: $00000286 VOL: 0
 ;PCODE: $00000287 VOL: 0
-; 0000 0127     delay_ms(5);
+; 0000 0129     delay_ms(5);
 ;PCODE: $00000288 VOL: 0
 ;PCODE: $00000289 VOL: 0
 ;PCODE: $0000028A VOL: 0
-; 0000 0128 
-; 0000 0129     RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
+; 0000 012A 
+; 0000 012B     RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
 ;PCODE: $0000028B VOL: 0
 ;PCODE: $0000028C VOL: 0
 ;PCODE: $0000028D VOL: 0
@@ -1010,12 +1012,12 @@
 ;PCODE: $0000028F VOL: 0
 ;PCODE: $00000290 VOL: 0
 ;PCODE: $00000291 VOL: 0
-; 0000 012A     delay_ms(5);
+; 0000 012C     delay_ms(5);
 ;PCODE: $00000292 VOL: 0
 ;PCODE: $00000293 VOL: 0
 ;PCODE: $00000294 VOL: 0
-; 0000 012B 
-; 0000 012C     RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
+; 0000 012D 
+; 0000 012E     RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
 ;PCODE: $00000295 VOL: 0
 ;PCODE: $00000296 VOL: 0
 ;PCODE: $00000297 VOL: 0
@@ -1023,23 +1025,23 @@
 ;PCODE: $00000299 VOL: 0
 ;PCODE: $0000029A VOL: 0
 ;PCODE: $0000029B VOL: 0
-; 0000 012D     delay_ms(5);
+; 0000 012F     delay_ms(5);
 ;PCODE: $0000029C VOL: 0
 ;PCODE: $0000029D VOL: 0
 ;PCODE: $0000029E VOL: 0
-; 0000 012E }
+; 0000 0130 }
 ;PCODE: $0000029F VOL: 0
 ;PCODE: $000002A0 VOL: 0
 ;PCODE: $000002A1 VOL: 0
 ;
 ;int get_RPM(char *str,char IDX, int* goal)
-; 0000 0131 {
+; 0000 0133 {
 ;PCODE: $000002A2 VOL: 0
 ;PCODE: $000002A3 VOL: 0
-; 0000 0132     unsigned char i = 0;
-; 0000 0133     unsigned int RPM = 0;
-; 0000 0134 
-; 0000 0135     RPM = (int)(PACKET_BUFF[5] << 8)+ (int)(PACKET_BUFF[6]);
+; 0000 0134     unsigned char i = 0;
+; 0000 0135     unsigned int RPM = 0;
+; 0000 0136 
+; 0000 0137     RPM = (int)(PACKET_BUFF[5] << 8)+ (int)(PACKET_BUFF[6]);
 ;PCODE: $000002A4 VOL: 0
 ;	*str -> Y+7
 ;	IDX -> Y+6
@@ -1059,7 +1061,7 @@
 ;PCODE: $000002AF VOL: 0
 ;PCODE: $000002B0 VOL: 0
 ;PCODE: $000002B1 VOL: 0
-; 0000 0136     *goal = (int)(PACKET_BUFF[3] << 8) + (int)(PACKET_BUFF[4]);
+; 0000 0138     *goal = (int)(PACKET_BUFF[3] << 8) + (int)(PACKET_BUFF[4]);
 ;PCODE: $000002B2 VOL: 0
 ;PCODE: $000002B3 VOL: 0
 ;PCODE: $000002B4 VOL: 0
@@ -1070,7 +1072,7 @@
 ;PCODE: $000002B9 VOL: 0
 ;PCODE: $000002BA VOL: 0
 ;PCODE: $000002BB VOL: 0
-; 0000 0137     for(i = 0; i<IDX; i++) *(str+i) = 0;
+; 0000 0139     for(i = 0; i<IDX; i++) *(str+i) = 0;
 ;PCODE: $000002BC VOL: 0
 ;PCODE: $000002BD VOL: 0
 ;PCODE: $000002BE VOL: 0
@@ -1091,19 +1093,19 @@
 ;PCODE: $000002CD VOL: 0
 ;PCODE: $000002CE VOL: 0
 ;PCODE: $000002CF VOL: 0
-; 0000 0139 return RPM;
+; 0000 013B return RPM;
 ;PCODE: $000002D0 VOL: 0
 ;PCODE: $000002D1 VOL: 0
 ;PCODE: $000002D2 VOL: 0
 ;PCODE: $000002D3 VOL: 0
-; 0000 013A }
+; 0000 013C }
 ;PCODE: $000002D4 VOL: 0
 ;
 ;interrupt [USART0_RXC] void usart0_rxc(void)
-; 0000 013D {
+; 0000 013F {
 ;PCODE: $000002D5 VOL: 0
 ;PCODE: $000002D6 VOL: 0
-; 0000 013E     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
+; 0000 0140     if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
 ;PCODE: $000002D7 VOL: 0
 ;PCODE: $000002D8 VOL: 0
 ;PCODE: $000002D9 VOL: 0
@@ -1117,57 +1119,57 @@
 ;PCODE: $000002E1 VOL: 0
 ;PCODE: $000002E2 VOL: 0
 ;PCODE: $000002E3 VOL: 0
-; 0000 013F     {
-; 0000 0140         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+; 0000 0141     {
+; 0000 0142         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
 ;PCODE: $000002E4 VOL: 0
 ;PCODE: $000002E5 VOL: 0
 ;PCODE: $000002E6 VOL: 0
 ;PCODE: $000002E7 VOL: 0
 ;PCODE: $000002E8 VOL: 0
-; 0000 0141         PACKET_BUFF_IDX++;
+; 0000 0143         PACKET_BUFF_IDX++;
 ;PCODE: $000002E9 VOL: 0
-; 0000 0142         TCNT2 = 0;
+; 0000 0144         TCNT2 = 0;
 ;PCODE: $000002EA VOL: 0
 ;PCODE: $000002EB VOL: 0
-; 0000 0143     }
-; 0000 0144     else {
+; 0000 0145     }
+; 0000 0146     else {
 ;PCODE: $000002EC VOL: 0
 ;PCODE: $000002ED VOL: 0
-; 0000 0145         PACKET_BUFF_IDX = 0;
+; 0000 0147         PACKET_BUFF_IDX = 0;
 ;PCODE: $000002EE VOL: 0
-; 0000 0146         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+; 0000 0148         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
 ;PCODE: $000002EF VOL: 0
 ;PCODE: $000002F0 VOL: 0
 ;PCODE: $000002F1 VOL: 0
 ;PCODE: $000002F2 VOL: 0
 ;PCODE: $000002F3 VOL: 0
-; 0000 0147         PACKET_BUFF_IDX++;
+; 0000 0149         PACKET_BUFF_IDX++;
 ;PCODE: $000002F4 VOL: 0
-; 0000 0148         TCNT2 = 0;
+; 0000 014A         TCNT2 = 0;
 ;PCODE: $000002F5 VOL: 0
 ;PCODE: $000002F6 VOL: 0
-; 0000 0149         TIMER2_OVERFLOW = 0;
+; 0000 014B         TIMER2_OVERFLOW = 0;
 ;PCODE: $000002F7 VOL: 0
-; 0000 014A     }
+; 0000 014C     }
 ;PCODE: $000002F8 VOL: 0
-; 0000 014B }
+; 0000 014D }
 ;PCODE: $000002F9 VOL: 0
 ;PCODE: $000002FA VOL: 0
 ;PCODE: $000002FB VOL: 0
 ;
 ;interrupt [USART1_RXC] void usart1_rxc(void)
-; 0000 014E {
+; 0000 0150 {
 ;PCODE: $000002FC VOL: 0
 ;PCODE: $000002FD VOL: 0
-; 0000 014F     unsigned char i = 0;
-; 0000 0150     i = UDR1;
+; 0000 0151     unsigned char i = 0;
+; 0000 0152     i = UDR1;
 ;PCODE: $000002FE VOL: 0
 ;	i -> R17
 ;PCODE: $000002FF VOL: 0
 ;PCODE: $00000300 VOL: 0
 ;PCODE: $00000301 VOL: 0
 ;PCODE: $00000302 VOL: 0
-; 0000 0151     if((i == '<') && (CHECK_GETS == 0)){
+; 0000 0153     if((i == '<') && (CHECK_GETS == 0)){
 ;PCODE: $00000303 VOL: 0
 ;PCODE: $00000304 VOL: 0
 ;PCODE: $00000305 VOL: 0
@@ -1178,7 +1180,7 @@
 ;PCODE: $0000030A VOL: 0
 ;PCODE: $0000030B VOL: 0
 ;PCODE: $0000030C VOL: 0
-; 0000 0152         PORTB.3 = ~PORTB.3;
+; 0000 0154         PORTB.3 = ~PORTB.3;
 ;PCODE: $0000030D VOL: 0
 ;PCODE: $0000030E VOL: 0
 ;PCODE: $0000030F VOL: 0
@@ -1189,17 +1191,17 @@
 ;PCODE: $00000314 VOL: 0
 ;PCODE: $00000315 VOL: 0
 ;PCODE: $00000316 VOL: 0
-; 0000 0153         VELOCITY_BUFF_IDX = 0;
+; 0000 0155         VELOCITY_BUFF_IDX = 0;
 ;PCODE: $00000317 VOL: 0
-; 0000 0154         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+; 0000 0156         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 ;PCODE: $00000318 VOL: 0
 ;PCODE: $00000319 VOL: 0
 ;PCODE: $0000031A VOL: 0
 ;PCODE: $0000031B VOL: 0
-; 0000 0155         VELOCITY_BUFF_IDX++;
+; 0000 0157         VELOCITY_BUFF_IDX++;
 ;PCODE: $0000031C VOL: 0
-; 0000 0156     }
-; 0000 0157     else if(i == '>' && (CHECK_GETS == 0)){
+; 0000 0158     }
+; 0000 0159     else if(i == '>' && (CHECK_GETS == 0)){
 ;PCODE: $0000031D VOL: 0
 ;PCODE: $0000031E VOL: 0
 ;PCODE: $0000031F VOL: 0
@@ -1212,31 +1214,31 @@
 ;PCODE: $00000326 VOL: 0
 ;PCODE: $00000327 VOL: 0
 ;PCODE: $00000328 VOL: 0
-; 0000 0158         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+; 0000 015A         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 ;PCODE: $00000329 VOL: 0
 ;PCODE: $0000032A VOL: 0
 ;PCODE: $0000032B VOL: 0
 ;PCODE: $0000032C VOL: 0
-; 0000 0159         VELOCITY_BUFF_IDX++;
+; 0000 015B         VELOCITY_BUFF_IDX++;
 ;PCODE: $0000032D VOL: 0
-; 0000 015A         CHECK_GETS = 1;
+; 0000 015C         CHECK_GETS = 1;
 ;PCODE: $0000032E VOL: 0
 ;PCODE: $0000032F VOL: 0
-; 0000 015B     }
-; 0000 015C     else if(CHECK_GETS == 0){
+; 0000 015D     }
+; 0000 015E     else if(CHECK_GETS == 0){
 ;PCODE: $00000330 VOL: 0
 ;PCODE: $00000331 VOL: 0
 ;PCODE: $00000332 VOL: 0
 ;PCODE: $00000333 VOL: 0
-; 0000 015D         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
+; 0000 015F         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 ;PCODE: $00000334 VOL: 0
 ;PCODE: $00000335 VOL: 0
 ;PCODE: $00000336 VOL: 0
 ;PCODE: $00000337 VOL: 0
-; 0000 015E         VELOCITY_BUFF_IDX++;
+; 0000 0160         VELOCITY_BUFF_IDX++;
 ;PCODE: $00000338 VOL: 0
-; 0000 015F     }
-; 0000 0160 }
+; 0000 0161     }
+; 0000 0162 }
 ;PCODE: $00000339 VOL: 0
 ;PCODE: $0000033A VOL: 0
 ;PCODE: $0000033B VOL: 0
@@ -1246,89 +1248,89 @@
 ;PCODE: $0000033F VOL: 0
 ;
 ;interrupt [TIM2_COMP] void timer2_comp(void)
-; 0000 0163 {
+; 0000 0165 {
 ;PCODE: $00000340 VOL: 0
 ;PCODE: $00000341 VOL: 0
-; 0000 0164     TIMER2_OVERFLOW++;
+; 0000 0166     TIMER2_OVERFLOW++;
 ;PCODE: $00000342 VOL: 0
-; 0000 0165 }
+; 0000 0167 }
 ;PCODE: $00000343 VOL: 0
 ;PCODE: $00000344 VOL: 0
 ;PCODE: $00000345 VOL: 0
 ;
 ;interrupt [TIM0_OVF] void timer0_ovf(void)
-; 0000 0168 {
+; 0000 016A {
 ;PCODE: $00000346 VOL: 0
 ;PCODE: $00000347 VOL: 0
-; 0000 0169     TIMER0_OVERFLOW++;
+; 0000 016B     TIMER0_OVERFLOW++;
 ;PCODE: $00000348 VOL: 0
 ;PCODE: $00000349 VOL: 0
 ;PCODE: $0000034A VOL: 0
-; 0000 016A }
+; 0000 016C }
 ;PCODE: $0000034B VOL: 0
 ;PCODE: $0000034C VOL: 0
 ;PCODE: $0000034D VOL: 0
 ;
 ;
 ;interrupt [TIM1_COMPB] void timer0_comp(void)
-; 0000 016E {
+; 0000 0170 {
 ;PCODE: $0000034E VOL: 0
 ;PCODE: $0000034F VOL: 0
-; 0000 016F     TIMER1_OVERFLOW++;
+; 0000 0171     TIMER1_OVERFLOW++;
 ;PCODE: $00000350 VOL: 0
 ;PCODE: $00000351 VOL: 0
 ;PCODE: $00000352 VOL: 0
-; 0000 0170     TCNT1H = 0x00;
+; 0000 0172     TCNT1H = 0x00;
 ;PCODE: $00000353 VOL: 0
 ;PCODE: $00000354 VOL: 0
-; 0000 0171     TCNT1L = 0x00;
+; 0000 0173     TCNT1L = 0x00;
 ;PCODE: $00000355 VOL: 0
 ;PCODE: $00000356 VOL: 0
-; 0000 0172 }
+; 0000 0174 }
 ;PCODE: $00000357 VOL: 0
 ;PCODE: $00000358 VOL: 0
 ;PCODE: $00000359 VOL: 0
 ;
 ;void main(void)
-; 0000 0175 {
+; 0000 0177 {
 ;PCODE: $0000035A VOL: 0
-; 0000 0176     float a_buff;
-; 0000 0177     float v_buff;
-; 0000 0178 
-; 0000 0179     int velocity = 0;
-; 0000 017A     int angularV = 0;
-; 0000 017B     int velocity_R = 0;
-; 0000 017C     int velocity_L = 0;
-; 0000 017D     int past_velocity_R = 0;
-; 0000 017E     int past_velocity_L = 0;
-; 0000 017F     int del_ms = 0;
-; 0000 0180 
-; 0000 0181     int currentRPM_R = 0;
-; 0000 0182     int currentRPM_L = 0;
-; 0000 0183     float currentV_R = 0;
-; 0000 0184     float currentV_L = 0;
-; 0000 0185     int goal_current_R = 0;
-; 0000 0186     int goal_current_L = 0;
-; 0000 0187 
-; 0000 0188     float d_velocity = 0;
-; 0000 0189     float d_angularV = 0;
-; 0000 018A     float control_time = 0;
-; 0000 018B 
-; 0000 018C     float d_x = 0;
-; 0000 018D     float d_y = 0;
-; 0000 018E     float d_angular = 0;
-; 0000 018F     int d_angular_circula = 0;
-; 0000 0190 
-; 0000 0191     float goal_x = 0;
-; 0000 0192     float goal_y = 0;
-; 0000 0193     float goal_angular = 0;
-; 0000 0194 
-; 0000 0195     float TIMER1_TIME = 0;
-; 0000 0196     float TIMER0_TIME = 0;
-; 0000 0197 
-; 0000 0198     unsigned char BUFF[500] = {0,};
+; 0000 0178     float a_buff;
+; 0000 0179     float v_buff;
+; 0000 017A 
+; 0000 017B     int velocity = 0;
+; 0000 017C     int angularV = 0;
+; 0000 017D     int velocity_R = 0;
+; 0000 017E     int velocity_L = 0;
+; 0000 017F     int past_velocity_R = 0;
+; 0000 0180     int past_velocity_L = 0;
+; 0000 0181     int del_ms = 0;
+; 0000 0182 
+; 0000 0183     int currentRPM_R = 0;
+; 0000 0184     int currentRPM_L = 0;
+; 0000 0185     float currentV_R = 0;
+; 0000 0186     float currentV_L = 0;
+; 0000 0187     int goal_current_R = 0;
+; 0000 0188     int goal_current_L = 0;
+; 0000 0189 
+; 0000 018A     float d_velocity = 0;
+; 0000 018B     float d_angularV = 0;
+; 0000 018C     float control_time = 0;
+; 0000 018D 
+; 0000 018E     float d_x = 0;
+; 0000 018F     float d_y = 0;
+; 0000 0190     float d_angular = 0;
+; 0000 0191     int d_angular_circula = 0;
+; 0000 0192 
+; 0000 0193     float goal_x = 0;
+; 0000 0194     float goal_y = 0;
+; 0000 0195     float goal_angular = 0;
+; 0000 0196 
+; 0000 0197     float TIMER1_TIME = 0;
+; 0000 0198     float TIMER0_TIME = 0;
 ; 0000 0199 
-; 0000 019A     usart1_init(bps_115200);
+; 0000 019A     unsigned char BUFF[500] = {0,};
+; 0000 019B 
+; 0000 019C     usart1_init(bps_115200);
 ;PCODE: $0000035B VOL: 0
 ;PCODE: $0000035C VOL: 0
 ;PCODE: $0000035D VOL: 0
@@ -1371,60 +1373,60 @@
 ;PCODE: $00000366 VOL: 0
 ;PCODE: $00000367 VOL: 0
 ;PCODE: $00000368 VOL: 0
-; 0000 019B     usart0_init(bps_115200);
+; 0000 019D     usart0_init(bps_115200);
 ;PCODE: $00000369 VOL: 0
 ;PCODE: $0000036A VOL: 0
 ;PCODE: $0000036B VOL: 0
-; 0000 019C     timer2_init();
+; 0000 019E     timer2_init();
 ;PCODE: $0000036C VOL: 0
-; 0000 019D     timer0_init();
+; 0000 019F     timer0_init();
 ;PCODE: $0000036D VOL: 0
-; 0000 019E     timer1_init();
+; 0000 01A0     timer1_init();
 ;PCODE: $0000036E VOL: 0
-; 0000 019F     SREG |= 0x80;
+; 0000 01A1     SREG |= 0x80;
 ;PCODE: $0000036F VOL: 0
-; 0000 01A0     DDRB.1 = 1;
+; 0000 01A2     DDRB.1 = 1;
 ;PCODE: $00000370 VOL: 0
 ;PCODE: $00000371 VOL: 0
-; 0000 01A1     DDRB.2 = 1;
+; 0000 01A3     DDRB.2 = 1;
 ;PCODE: $00000372 VOL: 0
 ;PCODE: $00000373 VOL: 0
-; 0000 01A2     DDRB.3 = 1;
+; 0000 01A4     DDRB.3 = 1;
 ;PCODE: $00000374 VOL: 0
 ;PCODE: $00000375 VOL: 0
-; 0000 01A3     delay_ms(5000);
+; 0000 01A5     delay_ms(5000);
 ;PCODE: $00000376 VOL: 0
 ;PCODE: $00000377 VOL: 0
 ;PCODE: $00000378 VOL: 0
-; 0000 01A4     PORTB.1 = 0;
+; 0000 01A6     PORTB.1 = 0;
 ;PCODE: $00000379 VOL: 0
 ;PCODE: $0000037A VOL: 0
-; 0000 01A5     PORTB.2 = 1;
+; 0000 01A7     PORTB.2 = 1;
 ;PCODE: $0000037B VOL: 0
 ;PCODE: $0000037C VOL: 0
-; 0000 01A6 
-; 0000 01A7     TIMER0_OVERFLOW = 0;
+; 0000 01A8 
+; 0000 01A9     TIMER0_OVERFLOW = 0;
 ;PCODE: $0000037D VOL: 0
-; 0000 01A8     TCNT0 = 0;
+; 0000 01AA     TCNT0 = 0;
 ;PCODE: $0000037E VOL: 0
 ;PCODE: $0000037F VOL: 0
-; 0000 01A9 
-; 0000 01AA     while(1)
+; 0000 01AB 
+; 0000 01AC     while(1)
 ;PCODE: $00000380 VOL: 0
-; 0000 01AB     {
-; 0000 01AC         if(CHECK_GETS)
+; 0000 01AD     {
+; 0000 01AE         if(CHECK_GETS)
 ;PCODE: $00000381 VOL: 0
 ;PCODE: $00000382 VOL: 0
-; 0000 01AD         {
-; 0000 01AE             PORTB.1 = 1;
+; 0000 01AF         {
+; 0000 01B0             PORTB.1 = 1;
 ;PCODE: $00000383 VOL: 0
 ;PCODE: $00000384 VOL: 0
-; 0000 01AF 
-; 0000 01B0             UCSR1B &= ~(1<<RXEN1);
+; 0000 01B1 
+; 0000 01B2             UCSR1B &= ~(1<<RXEN1);
 ;PCODE: $00000385 VOL: 0
 ;PCODE: $00000386 VOL: 0
 ;PCODE: $00000387 VOL: 0
-; 0000 01B1             sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+; 0000 01B3             sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
 ;PCODE: $00000388 VOL: 0
 ;PCODE: $00000389 VOL: 0
 ;PCODE: $0000038A VOL: 0
@@ -1451,24 +1453,24 @@
 ;PCODE: $0000039F VOL: 0
 ;PCODE: $000003A0 VOL: 0
 ;PCODE: $000003A1 VOL: 0
-; 0000 01B2             // sscanf(VELOCITY_BUFF,"<%d,%d,%f,%f,%f>", &velocity, &angularV, &goal_x, &goal_y, goal_angular);
-; 0000 01B3 
-; 0000 01B4             if(!del_ms){
+; 0000 01B4             // sscanf(VELOCITY_BUFF,"<%d,%d,%f,%f,%f>", &velocity, &angularV, &goal_x, &goal_y, goal_angular);
+; 0000 01B5 
+; 0000 01B6             if(!del_ms){
 ;PCODE: $000003A2 VOL: 0
 ;PCODE: $000003A3 VOL: 0
 ;PCODE: $000003A4 VOL: 0
-; 0000 01B5                 d_x = 0;
+; 0000 01B7                 d_x = 0;
 ;PCODE: $000003A5 VOL: 0
 ;PCODE: $000003A6 VOL: 0
-; 0000 01B6                 d_y = 0;
+; 0000 01B8                 d_y = 0;
 ;PCODE: $000003A7 VOL: 0
 ;PCODE: $000003A8 VOL: 0
-; 0000 01B7                 d_angular = 0;
+; 0000 01B9                 d_angular = 0;
 ;PCODE: $000003A9 VOL: 0
 ;PCODE: $000003AA VOL: 0
-; 0000 01B8             }
-; 0000 01B9 
-; 0000 01BA             v_buff = (float)velocity/1000;
+; 0000 01BA             }
+; 0000 01BB 
+; 0000 01BC             v_buff = (float)velocity/1000;
 ;PCODE: $000003AB VOL: 0
 ;PCODE: $000003AC VOL: 0
 ;PCODE: $000003AD VOL: 0
@@ -1476,15 +1478,15 @@
 ;PCODE: $000003AF VOL: 0
 ;PCODE: $000003B0 VOL: 0
 ;PCODE: $000003B1 VOL: 0
-; 0000 01BB             a_buff = (float)angularV/1000;
+; 0000 01BD             a_buff = (float)angularV/1000;
 ;PCODE: $000003B2 VOL: 0
 ;PCODE: $000003B3 VOL: 0
 ;PCODE: $000003B4 VOL: 0
 ;PCODE: $000003B5 VOL: 0
 ;PCODE: $000003B6 VOL: 0
 ;PCODE: $000003B7 VOL: 0
-; 0000 01BC 
-; 0000 01BD             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+; 0000 01BE 
+; 0000 01BF             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 ;PCODE: $000003B8 VOL: 0
 ;PCODE: $000003B9 VOL: 0
 ;PCODE: $000003BA VOL: 0
@@ -1499,32 +1501,32 @@
 ;PCODE: $000003C3 VOL: 0
 ;PCODE: $000003C4 VOL: 0
 ;PCODE: $000003C5 VOL: 0
-; 0000 01BE 
-; 0000 01BF             oper_Disapath(velocity_R, velocity_L);
+; 0000 01C0 
+; 0000 01C1             oper_Disapath(velocity_R, velocity_L);
 ;PCODE: $000003C6 VOL: 0
 ;PCODE: $000003C7 VOL: 0
 ;PCODE: $000003C8 VOL: 0
 ;PCODE: $000003C9 VOL: 0
-; 0000 01C0 
-; 0000 01C1             TIMER1_TIME = 0;
+; 0000 01C2 
+; 0000 01C3             TIMER1_TIME = 0;
 ;PCODE: $000003CA VOL: 0
 ;PCODE: $000003CB VOL: 0
-; 0000 01C2             TIMER1_OVERFLOW = 0;
+; 0000 01C4             TIMER1_OVERFLOW = 0;
 ;PCODE: $000003CC VOL: 0
-; 0000 01C3             TCNT1L = 0;
+; 0000 01C5             TCNT1L = 0;
 ;PCODE: $000003CD VOL: 0
 ;PCODE: $000003CE VOL: 0
-; 0000 01C4 
-; 0000 01C5             CHECK_GETS = 0;
+; 0000 01C6 
+; 0000 01C7             CHECK_GETS = 0;
 ;PCODE: $000003CF VOL: 0
-; 0000 01C6             UCSR1B |=(1<<RXEN1);
+; 0000 01C8             UCSR1B |=(1<<RXEN1);
 ;PCODE: $000003D0 VOL: 0
 ;PCODE: $000003D1 VOL: 0
 ;PCODE: $000003D2 VOL: 0
-; 0000 01C7             // PORTB.1 = 0;
-; 0000 01C8         }
-; 0000 01C9 
-; 0000 01CA         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
+; 0000 01C9             // PORTB.1 = 0;
+; 0000 01CA         }
+; 0000 01CB 
+; 0000 01CC         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
 ;PCODE: $000003D3 VOL: 0
 ;PCODE: $000003D4 VOL: 0
 ;PCODE: $000003D5 VOL: 0
@@ -1537,31 +1539,31 @@
 ;PCODE: $000003DC VOL: 0
 ;PCODE: $000003DD VOL: 0
 ;PCODE: $000003DE VOL: 0
-; 0000 01CB 
-; 0000 01CC         if(del_ms<TIMER1_TIME)
+; 0000 01CD 
+; 0000 01CE         if(del_ms<TIMER1_TIME)
 ;PCODE: $000003DF VOL: 0
 ;PCODE: $000003E0 VOL: 0
 ;PCODE: $000003E1 VOL: 0
 ;PCODE: $000003E2 VOL: 0
 ;PCODE: $000003E3 VOL: 0
-; 0000 01CD         {
-; 0000 01CE             oper_Disapath(0,0);
+; 0000 01CF         {
+; 0000 01D0             oper_Disapath(0,0);
 ;PCODE: $000003E4 VOL: 0
 ;PCODE: $000003E5 VOL: 0
 ;PCODE: $000003E6 VOL: 0
 ;PCODE: $000003E7 VOL: 0
 ;PCODE: $000003E8 VOL: 0
-; 0000 01CF             TIMER1_OVERFLOW = 0;
+; 0000 01D1             TIMER1_OVERFLOW = 0;
 ;PCODE: $000003E9 VOL: 0
-; 0000 01D0             v_buff = 0;
+; 0000 01D2             v_buff = 0;
 ;PCODE: $000003EA VOL: 0
 ;PCODE: $000003EB VOL: 0
-; 0000 01D1             a_buff = 0;
+; 0000 01D3             a_buff = 0;
 ;PCODE: $000003EC VOL: 0
 ;PCODE: $000003ED VOL: 0
-; 0000 01D2         }
-; 0000 01D3 
-; 0000 01D4         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
+; 0000 01D4         }
+; 0000 01D5 
+; 0000 01D6         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $000003EE VOL: 0
 ;PCODE: $000003EF VOL: 0
 ;PCODE: $000003F0 VOL: 0
@@ -1570,11 +1572,11 @@
 ;PCODE: $000003F3 VOL: 0
 ;PCODE: $000003F4 VOL: 0
 ;PCODE: $000003F5 VOL: 0
-; 0000 01D5         delay_ms(5);
+; 0000 01D7         delay_ms(5);
 ;PCODE: $000003F6 VOL: 0
 ;PCODE: $000003F7 VOL: 0
 ;PCODE: $000003F8 VOL: 0
-; 0000 01D6         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
+; 0000 01D8         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
 ;PCODE: $000003F9 VOL: 0
 ;PCODE: $000003FA VOL: 0
 ;PCODE: $000003FB VOL: 0
@@ -1582,11 +1584,11 @@
 ;PCODE: $000003FD VOL: 0
 ;PCODE: $000003FE VOL: 0
 ;PCODE: $000003FF VOL: 0
-; 0000 01D7         delay_ms(5);
+; 0000 01D9         delay_ms(5);
 ;PCODE: $00000400 VOL: 0
 ;PCODE: $00000401 VOL: 0
 ;PCODE: $00000402 VOL: 0
-; 0000 01D8         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
+; 0000 01DA         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $00000403 VOL: 0
 ;PCODE: $00000404 VOL: 0
 ;PCODE: $00000405 VOL: 0
@@ -1594,11 +1596,11 @@
 ;PCODE: $00000407 VOL: 0
 ;PCODE: $00000408 VOL: 0
 ;PCODE: $00000409 VOL: 0
-; 0000 01D9         delay_ms(5);
+; 0000 01DB         delay_ms(5);
 ;PCODE: $0000040A VOL: 0
 ;PCODE: $0000040B VOL: 0
 ;PCODE: $0000040C VOL: 0
-; 0000 01DA         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
+; 0000 01DC         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
 ;PCODE: $0000040D VOL: 0
 ;PCODE: $0000040E VOL: 0
 ;PCODE: $0000040F VOL: 0
@@ -1607,27 +1609,27 @@
 ;PCODE: $00000412 VOL: 0
 ;PCODE: $00000413 VOL: 0
 ;PCODE: $00000414 VOL: 0
-; 0000 01DB         delay_ms(5);
+; 0000 01DD         delay_ms(5);
 ;PCODE: $00000415 VOL: 0
 ;PCODE: $00000416 VOL: 0
 ;PCODE: $00000417 VOL: 0
-; 0000 01DC 
-; 0000 01DD         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
+; 0000 01DE 
+; 0000 01DF         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
 ;PCODE: $00000418 VOL: 0
 ;PCODE: $00000419 VOL: 0
 ;PCODE: $0000041A VOL: 0
 ;PCODE: $0000041B VOL: 0
 ;PCODE: $0000041C VOL: 0
 ;PCODE: $0000041D VOL: 0
-; 0000 01DE         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
+; 0000 01E0         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
 ;PCODE: $0000041E VOL: 0
 ;PCODE: $0000041F VOL: 0
 ;PCODE: $00000420 VOL: 0
 ;PCODE: $00000421 VOL: 0
 ;PCODE: $00000422 VOL: 0
 ;PCODE: $00000423 VOL: 0
-; 0000 01DF 
-; 0000 01E0         d_velocity = (currentV_R + currentV_L)/2;
+; 0000 01E1 
+; 0000 01E2         d_velocity = (currentV_R + currentV_L)/2;
 ;PCODE: $00000424 VOL: 0
 ;PCODE: $00000425 VOL: 0
 ;PCODE: $00000426 VOL: 0
@@ -1635,7 +1637,8 @@
 ;PCODE: $00000428 VOL: 0
 ;PCODE: $00000429 VOL: 0
 ;PCODE: $0000042A VOL: 0
-; 0000 01E1         d_angularV = (2*(currentV_R-currentV_L))/Length;
+; 0000 01E3         // d_angularV = (2*(currentV_R-currentV_L))/Length;
+; 0000 01E4         d_angularV = (currentV_R-currentV_L)/Length;
 ;PCODE: $0000042B VOL: 0
 ;PCODE: $0000042C VOL: 0
 ;PCODE: $0000042D VOL: 0
@@ -1643,10 +1646,10 @@
 ;PCODE: $0000042F VOL: 0
 ;PCODE: $00000430 VOL: 0
 ;PCODE: $00000431 VOL: 0
+; 0000 01E5 
+; 0000 01E6         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
 ;PCODE: $00000432 VOL: 0
 ;PCODE: $00000433 VOL: 0
-; 0000 01E2 
-; 0000 01E3         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
 ;PCODE: $00000434 VOL: 0
 ;PCODE: $00000435 VOL: 0
 ;PCODE: $00000436 VOL: 0
@@ -1656,24 +1659,24 @@
 ;PCODE: $0000043A VOL: 0
 ;PCODE: $0000043B VOL: 0
 ;PCODE: $0000043C VOL: 0
+; 0000 01E7         TIMER0_OVERFLOW = 0;
 ;PCODE: $0000043D VOL: 0
+; 0000 01E8         TCNT0 = 0;
 ;PCODE: $0000043E VOL: 0
-; 0000 01E4         TIMER0_OVERFLOW = 0;
 ;PCODE: $0000043F VOL: 0
-; 0000 01E5         TCNT0 = 0;
+; 0000 01E9 
+; 0000 01EA         if((d_velocity!=0) ||(d_angularV!=0)){
 ;PCODE: $00000440 VOL: 0
 ;PCODE: $00000441 VOL: 0
-; 0000 01E6 
-; 0000 01E7         if((d_velocity!=0) ||(d_angularV!=0)){
 ;PCODE: $00000442 VOL: 0
 ;PCODE: $00000443 VOL: 0
 ;PCODE: $00000444 VOL: 0
 ;PCODE: $00000445 VOL: 0
 ;PCODE: $00000446 VOL: 0
 ;PCODE: $00000447 VOL: 0
+; 0000 01EB             d_x += d_velocity*control_time*cos(control_time*d_angularV);
 ;PCODE: $00000448 VOL: 0
 ;PCODE: $00000449 VOL: 0
-; 0000 01E8             d_x += d_velocity*control_time*cos(control_time*d_angularV);
 ;PCODE: $0000044A VOL: 0
 ;PCODE: $0000044B VOL: 0
 ;PCODE: $0000044C VOL: 0
@@ -1686,9 +1689,9 @@
 ;PCODE: $00000453 VOL: 0
 ;PCODE: $00000454 VOL: 0
 ;PCODE: $00000455 VOL: 0
+; 0000 01EC             d_y += d_velocity*control_time*sin(control_time*d_angularV);
 ;PCODE: $00000456 VOL: 0
 ;PCODE: $00000457 VOL: 0
-; 0000 01E9             d_y += d_velocity*control_time*sin(control_time*d_angularV);
 ;PCODE: $00000458 VOL: 0
 ;PCODE: $00000459 VOL: 0
 ;PCODE: $0000045A VOL: 0
@@ -1701,35 +1704,35 @@
 ;PCODE: $00000461 VOL: 0
 ;PCODE: $00000462 VOL: 0
 ;PCODE: $00000463 VOL: 0
+; 0000 01ED             d_angular += control_time*d_angularV;
 ;PCODE: $00000464 VOL: 0
 ;PCODE: $00000465 VOL: 0
-; 0000 01EA             d_angular += control_time*d_angularV;
 ;PCODE: $00000466 VOL: 0
 ;PCODE: $00000467 VOL: 0
 ;PCODE: $00000468 VOL: 0
 ;PCODE: $00000469 VOL: 0
+; 0000 01EE             d_angular_circula = (int)(d_angular*Circular);
 ;PCODE: $0000046A VOL: 0
 ;PCODE: $0000046B VOL: 0
-; 0000 01EB             d_angular_circula = (int)(d_angular*Circular);
 ;PCODE: $0000046C VOL: 0
 ;PCODE: $0000046D VOL: 0
 ;PCODE: $0000046E VOL: 0
+; 0000 01EF         }
+; 0000 01F0 
+; 0000 01F1         TIMER0_TIME += control_time;
 ;PCODE: $0000046F VOL: 0
 ;PCODE: $00000470 VOL: 0
-; 0000 01EC         }
-; 0000 01ED 
-; 0000 01EE         TIMER0_TIME += control_time;
 ;PCODE: $00000471 VOL: 0
 ;PCODE: $00000472 VOL: 0
 ;PCODE: $00000473 VOL: 0
+; 0000 01F2         if(TIMER0_TIME>0.1){
 ;PCODE: $00000474 VOL: 0
 ;PCODE: $00000475 VOL: 0
-; 0000 01EF         if(TIMER0_TIME>0.05){
 ;PCODE: $00000476 VOL: 0
 ;PCODE: $00000477 VOL: 0
+; 0000 01F3             sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
 ;PCODE: $00000478 VOL: 0
 ;PCODE: $00000479 VOL: 0
-; 0000 01F0             sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
 ;PCODE: $0000047A VOL: 0
 ;PCODE: $0000047B VOL: 0
 ;PCODE: $0000047C VOL: 0
@@ -1745,28 +1748,26 @@
 ;PCODE: $00000486 VOL: 0
 ;PCODE: $00000487 VOL: 0
 ;PCODE: $00000488 VOL: 0
+; 0000 01F4             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
+; 0000 01F5             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
+; 0000 01F6             // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula);
+; 0000 01F7             // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
+; 0000 01F8             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
+; 0000 01F9             puts_USART1(BUFF);
 ;PCODE: $00000489 VOL: 0
 ;PCODE: $0000048A VOL: 0
-; 0000 01F1             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
-; 0000 01F2             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-; 0000 01F3             // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula/2);
-; 0000 01F4             // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
-; 0000 01F5             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
-; 0000 01F6             puts_USART1(BUFF);
 ;PCODE: $0000048B VOL: 0
+; 0000 01FA              TIMER0_TIME = 0;
 ;PCODE: $0000048C VOL: 0
 ;PCODE: $0000048D VOL: 0
-; 0000 01F7              TIMER0_TIME = 0;
+; 0000 01FB         }
+; 0000 01FC 
+; 0000 01FD     }
 ;PCODE: $0000048E VOL: 0
 ;PCODE: $0000048F VOL: 0
-; 0000 01F8         }
-; 0000 01F9 
-; 0000 01FA     }
 ;PCODE: $00000490 VOL: 0
+; 0000 01FE }
 ;PCODE: $00000491 VOL: 0
 ;PCODE: $00000492 VOL: 0
-; 0000 01FB }
 ;PCODE: $00000493 VOL: 0
 ;PCODE: $00000494 VOL: 0
-;PCODE: $00000495 VOL: 0
-;PCODE: $00000496 VOL: 0

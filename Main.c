@@ -21,6 +21,28 @@
 
 #define Circular 57.29                      // 180 / PI
 
+
+/////////////////////////TWI//////////////////////////
+#define Inches 0x50
+#define Centimeters 0x51
+#define microSec 0x52
+#define USID 0xE4
+
+#define CommandReg 0
+#define Unused 1
+#define RangeHighByte 2
+#define RangeLowByte 3
+
+#define TWI_START 0x08
+#define MT_REPEATED_START 0x10
+#define MT_SLAW_ACK 0x18
+#define MT_DATA_ACK 0x28
+#define MT_SLAR_ACK 0x40
+#define MT_DATA_NACK 0x58
+
+#define ts 0.070         /// 샘플링 시간
+#define tau 0.1         /// 시정수
+
 unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
 unsigned char PACKET_BUFF_IDX = 0;
@@ -80,27 +102,17 @@ void timer1_init(void)
     TIMSK |= (1<<OCIE1B);
 }
 
+void TWI_Init(){
+    TWBR = 10;
+    TWSR = 0;
+    TWCR = 0;
+}
+
 void putch_USART1(char data)
 {
     while(!(UCSR1A & (1<<UDRE1))); // UDRE flag is USART Data Register Empty
     UDR1 = data;
 }
-
-//USART 문자열 송신
-// void puts_USART1(char *str,char IDX)
-// {
-//     unsigned char i = 0;
-
-//     for(i = 0;i<IDX;i++)
-//     {
-//         putch_USART1(*(str+i));
-//     }
-
-//     for(i = 0; i<IDX; i++)
-//     {
-//         *(str+i) = 0;
-//     }
-// }
 
 void puts_USART1(char *str)
 {
@@ -113,22 +125,6 @@ void puts_USART1(char *str)
         *(str++) = 0;
     }
 }
-
-// void puts_USART1(char *str,char IDX)
-// {
-//     unsigned char i = 0;
-
-//     while(*str != 0)
-//     {
-//         putch_USART1(*(str+i));
-//         i++;
-//     }
-
-//     for(i = 0; i<IDX; i++)
-//     {
-//         *(str+i) = 0;
-//     }
-// }
 
 void puts_Modbus1(char *str,char IDX)
 {
@@ -274,8 +270,10 @@ void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
         *_angularV = -(*_angularV);
     }
 
-    VelocityR = *_velocity+(*_angularV*Length)/4;
-    VelocityL = *_velocity-(*_angularV*Length)/4;
+    VelocityR = *_velocity+(*_angularV*Length)/2;
+    // VelocityR = *_velocity+(*_angularV*Length)/4;
+    VelocityL = *_velocity-(*_angularV*Length)/2;
+    // VelocityL = *_velocity-(*_angularV*Length)/4;
 
     *R_RPM = (int)(152.788*VelocityR*Gearratio);
     *L_RPM = (int)(152.788*VelocityL*Gearratio);
@@ -311,6 +309,125 @@ int get_RPM(char *str,char IDX, int* goal)
     for(i = 0; i<IDX; i++) *(str+i) = 0;
 
     return RPM;
+}
+
+///////////////// TWI /////////////////////////////
+unsigned char TWI_Read(unsigned char addr, unsigned char regAddr)
+{
+    unsigned char Data;
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));//Start조건 전송
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));
+    
+    TWDR = addr&(~0x01);                //쓰기 위한 주소 전송
+    TWCR = ((1<<TWINT)|(1<<TWEN));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
+    
+    TWDR = regAddr;                     //Reg주소 전송
+    TWCR = ((1<<TWINT)|(1<<TWEN));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA)); //Repeated start 전송
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_REPEATED_START));
+    
+    TWDR = addr|0x01;                       //읽기 위한 주소 전송
+    TWCR = ((1<<TWINT)|(1<<TWEN));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAR_ACK));
+                                    
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN));                
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_NACK));
+    Data = TWDR;                        //Data읽기
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
+    
+    return Data;    
+}
+
+void TWI_Write(unsigned char addr, unsigned char Data[],int NumberOfData)
+{
+    int i=0;
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));  
+    
+    TWDR = addr&(~0x01);
+    TWCR = ((1<<TWINT)|(1<<TWEN));  
+    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
+    
+    for(i=0;i<NumberOfData;i++){
+        TWDR = Data[i];
+        TWCR = ((1<<TWINT)|(1<<TWEN));  
+        while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
+    }
+    
+    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
+}
+
+
+void Start_SRF02_Conv(unsigned char Adress, unsigned char mode){
+    unsigned char ConvMode[2] = {0x00,};
+    ConvMode[1] = mode;
+    TWI_Write(Adress,ConvMode,2);
+}
+
+void Change_SRF02_Adress(unsigned char nowAdress, unsigned char changeAdress)
+{
+    unsigned char sequense1[2] = {0x00,0xA0};
+    unsigned char sequense2[2] = {0x00,0xAA};
+    unsigned char sequense3[2] = {0x00,0xA5};
+    unsigned char sequense4[2] = {0x00,};
+    sequense4[1] = changeAdress;
+    TWI_Write(nowAdress,sequense1,2);
+    delay_ms(1);
+    TWI_Write(nowAdress,sequense2,2);
+    delay_ms(1);
+    TWI_Write(nowAdress,sequense3,2);
+    delay_ms(1);
+    TWI_Write(nowAdress,sequense4,2);
+    delay_ms(1);
+}
+
+unsigned int Get_SRF02_Range(unsigned char Adress)
+{
+    unsigned int range;
+    unsigned char High = 0,Low = 0;
+
+    High = TWI_Read(Adress, RangeHighByte);
+    if(High == 0xFF){
+
+        return 0;
+    }
+    Low = TWI_Read(Adress, RangeLowByte);
+    range = (High<<8)+Low;
+    
+    return range;
+}
+
+void Start_SRF02_Conv_arr(unsigned char ID)
+{
+    if(SRF02_WAIT_FLAG == 0){
+        Start_SRF02_Conv(ID,Centimeters);
+        TCNT1H = 0;
+        TCNT1L = 0;
+        SRF02_WAIT_FLAG = 1;
+    }
+}
+
+void Get_SRF02_Range_filter(unsigned char ID, unsigned int* range, unsigned int* pre_range, unsigned int *no_filter)
+{
+    if(SRF02_CONVERTING_FLAG == 1 && SRF02_WAIT_FLAG == 1){
+        *no_filter = Get_SRF02_Range(ID);
+
+        *range = ( tau * (*pre_range) + ts * (*no_filter) ) / (tau + ts) ; // low pass -filter
+
+        // sprintf(char_buff, "%d,%d\n", *no_filter, *range);
+        // puts_USART1(char_buff);
+
+        *pre_range = *range;
+        SRF02_CONVERTING_FLAG = 0;
+        SRF02_WAIT_FLAG = 0;
+        
+    }
 }
 
 interrupt [USART0_RXC] void usart0_rxc(void)
@@ -369,6 +486,10 @@ interrupt [TIM1_COMPB] void timer0_comp(void)
     TCNT1L = 0x00;
 }
 
+interrupt [TIM1_COMPB] void timer0_comp(void)
+{
+    SRF02_CONVERTING_FLAG = 1;
+}
 void main(void)
 {
     float a_buff;
@@ -478,7 +599,7 @@ void main(void)
         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
 
         d_velocity = (currentV_R + currentV_L)/2;
-        d_angularV = (2*(currentV_R-currentV_L))/Length;
+        d_angularV = (currentV_R-currentV_L)/Length;
 
         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
         TIMER0_OVERFLOW = 0;
@@ -492,11 +613,11 @@ void main(void)
         }
 
         TIMER0_TIME += control_time;
-        if(TIMER0_TIME>0.05){
+        if(TIMER0_TIME>0.1){
             sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-            // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula/2);
+            // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula);
             // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
             puts_USART1(BUFF);
