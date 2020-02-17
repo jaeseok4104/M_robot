@@ -1506,6 +1506,11 @@
 ; 0000 0192 
 ; 0000 0193         *range = ( tau * (*pre_range) + ts * (*no_filter) ) / (tau + ts) ; // low pass -filter
 ;PCODE: $000003FF VOL: 0
+<<<<<<< HEAD
+=======
+; 0000 01D7         // delay_ms(5);
+; 0000 01D8         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
+>>>>>>> merget
 ;PCODE: $00000400 VOL: 0
 ;PCODE: $00000401 VOL: 0
 ;PCODE: $00000402 VOL: 0
@@ -1513,9 +1518,14 @@
 ;PCODE: $00000404 VOL: 0
 ;PCODE: $00000405 VOL: 0
 ;PCODE: $00000406 VOL: 0
+; 0000 01D9         delay_ms(5);
 ;PCODE: $00000407 VOL: 0
 ;PCODE: $00000408 VOL: 0
 ;PCODE: $00000409 VOL: 0
+<<<<<<< HEAD
+=======
+; 0000 01DA         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
+>>>>>>> merget
 ;PCODE: $0000040A VOL: 0
 ;PCODE: $0000040B VOL: 0
 ;PCODE: $0000040C VOL: 0
@@ -1524,11 +1534,17 @@
 ;PCODE: $0000040F VOL: 0
 ;PCODE: $00000410 VOL: 0
 ;PCODE: $00000411 VOL: 0
+<<<<<<< HEAD
 ; 0000 0194 
 ; 0000 0195         // sprintf(char_buff, "%d,%d\n", *no_filter, *range);
 ; 0000 0196         // puts_USART1(char_buff);
 ; 0000 0197 
 ; 0000 0198         *pre_range = *range;
+=======
+; 0000 01DB         // delay_ms(5);
+; 0000 01DC 
+; 0000 01DD         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
+>>>>>>> merget
 ;PCODE: $00000412 VOL: 0
 ;PCODE: $00000413 VOL: 0
 ;PCODE: $00000414 VOL: 0
@@ -1537,9 +1553,13 @@
 ;PCODE: $00000416 VOL: 0
 ; 0000 019A         SRF02_WAIT_FLAG = 0;
 ;PCODE: $00000417 VOL: 0
+<<<<<<< HEAD
 ; 0000 019B 
 ; 0000 019C     }
 ; 0000 019D }
+=======
+; 0000 01DE         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
+>>>>>>> merget
 ;PCODE: $00000418 VOL: 0
 ;PCODE: $00000419 VOL: 0
 ;PCODE: $0000041A VOL: 0
@@ -1551,9 +1571,14 @@
 ; 0000 01A2 {
 ;PCODE: $0000041C VOL: 0
 ;PCODE: $0000041D VOL: 0
+<<<<<<< HEAD
 ; 0000 01A3     // if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
 ; 0000 01A4     // {
 ; 0000 01A5         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+=======
+; 0000 01DF 
+; 0000 01E0         d_velocity = (currentV_R + currentV_L)/2;
+>>>>>>> merget
 ;PCODE: $0000041E VOL: 0
 ;PCODE: $0000041F VOL: 0
 ;PCODE: $00000420 VOL: 0
@@ -1561,6 +1586,7 @@
 ;PCODE: $00000422 VOL: 0
 ; 0000 01A6         PACKET_BUFF_IDX++;
 ;PCODE: $00000423 VOL: 0
+<<<<<<< HEAD
 ; 0000 01A7         // TCNT2 = 0;
 ; 0000 01A8     // }
 ; 0000 01A9     // else {
@@ -1571,7 +1597,10 @@
 ; 0000 01AE     //     TIMER2_OVERFLOW = 0;
 ; 0000 01AF     // }
 ; 0000 01B0 }
+=======
+>>>>>>> merget
 ;PCODE: $00000424 VOL: 0
+; 0000 01E1         d_angularV = (2*(currentV_R-currentV_L))/Length;
 ;PCODE: $00000425 VOL: 0
 ;PCODE: $00000426 VOL: 0
 ;
@@ -1587,7 +1616,12 @@
 ;PCODE: $0000042B VOL: 0
 ;PCODE: $0000042C VOL: 0
 ;PCODE: $0000042D VOL: 0
+<<<<<<< HEAD
 ; 0000 01B6     if((i == '<') && (CHECK_GETS == 0)){
+=======
+; 0000 01E2 
+; 0000 01E3         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
+>>>>>>> merget
 ;PCODE: $0000042E VOL: 0
 ;PCODE: $0000042F VOL: 0
 ;PCODE: $00000430 VOL: 0
@@ -1600,19 +1634,27 @@
 ;PCODE: $00000437 VOL: 0
 ; 0000 01B7         PORTB.3 = ~PORTB.3;
 ;PCODE: $00000438 VOL: 0
+; 0000 01E4         TIMER0_OVERFLOW = 0;
 ;PCODE: $00000439 VOL: 0
+; 0000 01E5         TCNT0 = 0;
 ;PCODE: $0000043A VOL: 0
 ;PCODE: $0000043B VOL: 0
+; 0000 01E6 
+; 0000 01E7         if((d_velocity!=0) ||(d_angularV!=0)){
 ;PCODE: $0000043C VOL: 0
 ;PCODE: $0000043D VOL: 0
 ;PCODE: $0000043E VOL: 0
 ;PCODE: $0000043F VOL: 0
 ;PCODE: $00000440 VOL: 0
 ;PCODE: $00000441 VOL: 0
+<<<<<<< HEAD
 ; 0000 01B8         VELOCITY_BUFF_IDX = 0;
+=======
+>>>>>>> merget
 ;PCODE: $00000442 VOL: 0
 ; 0000 01B9         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 ;PCODE: $00000443 VOL: 0
+; 0000 01E8             d_x += d_velocity*control_time*cos(control_time*d_angularV);
 ;PCODE: $00000444 VOL: 0
 ;PCODE: $00000445 VOL: 0
 ;PCODE: $00000446 VOL: 0
@@ -1630,6 +1672,7 @@
 ;PCODE: $0000044F VOL: 0
 ;PCODE: $00000450 VOL: 0
 ;PCODE: $00000451 VOL: 0
+; 0000 01E9             d_y += d_velocity*control_time*sin(control_time*d_angularV);
 ;PCODE: $00000452 VOL: 0
 ;PCODE: $00000453 VOL: 0
 ; 0000 01BD         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
@@ -1637,7 +1680,10 @@
 ;PCODE: $00000455 VOL: 0
 ;PCODE: $00000456 VOL: 0
 ;PCODE: $00000457 VOL: 0
+<<<<<<< HEAD
 ; 0000 01BE         VELOCITY_BUFF_IDX++;
+=======
+>>>>>>> merget
 ;PCODE: $00000458 VOL: 0
 ; 0000 01BF         CHECK_GETS = 1;
 ;PCODE: $00000459 VOL: 0
@@ -1650,6 +1696,7 @@
 ;PCODE: $0000045E VOL: 0
 ; 0000 01C2         VELOCITY_BUFF[VELOCITY_BUFF_IDX] = i;
 ;PCODE: $0000045F VOL: 0
+; 0000 01EA             d_angular += control_time*d_angularV;
 ;PCODE: $00000460 VOL: 0
 ;PCODE: $00000461 VOL: 0
 ;PCODE: $00000462 VOL: 0
@@ -1659,14 +1706,24 @@
 ; 0000 01C5 }
 ;PCODE: $00000464 VOL: 0
 ;PCODE: $00000465 VOL: 0
+<<<<<<< HEAD
+=======
+; 0000 01EB             d_angular_circula = (int)(d_angular*Circular);
+>>>>>>> merget
 ;PCODE: $00000466 VOL: 0
 ;PCODE: $00000467 VOL: 0
 ;PCODE: $00000468 VOL: 0
 ;PCODE: $00000469 VOL: 0
 ;PCODE: $0000046A VOL: 0
+<<<<<<< HEAD
 ;
 ;interrupt [TIM2_COMP] void timer2_comp(void)
 ; 0000 01C8 {
+=======
+; 0000 01EC         }
+; 0000 01ED 
+; 0000 01EE         TIMER0_TIME += control_time;
+>>>>>>> merget
 ;PCODE: $0000046B VOL: 0
 ;PCODE: $0000046C VOL: 0
 ; 0000 01C9     TIMER2_OVERFLOW++;
@@ -1674,17 +1731,29 @@
 ; 0000 01CA }
 ;PCODE: $0000046E VOL: 0
 ;PCODE: $0000046F VOL: 0
+; 0000 01EF         if(TIMER0_TIME>0.05){
 ;PCODE: $00000470 VOL: 0
+<<<<<<< HEAD
 ;
 ;interrupt [TIM0_OVF] void timer0_ovf(void)
 ; 0000 01CD {
+=======
+>>>>>>> merget
 ;PCODE: $00000471 VOL: 0
 ;PCODE: $00000472 VOL: 0
 ; 0000 01CE     TIMER0_OVERFLOW++;
 ;PCODE: $00000473 VOL: 0
+; 0000 01F0             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
+; 0000 01F1             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
+; 0000 01F2             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
+; 0000 01F3             // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula/2);
+; 0000 01F4             sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
 ;PCODE: $00000474 VOL: 0
 ;PCODE: $00000475 VOL: 0
+<<<<<<< HEAD
 ; 0000 01CF }
+=======
+>>>>>>> merget
 ;PCODE: $00000476 VOL: 0
 ;PCODE: $00000477 VOL: 0
 ;PCODE: $00000478 VOL: 0
@@ -1753,6 +1822,7 @@
 ; 0000 0200     usart1_init(bps_115200);
 ;PCODE: $00000487 VOL: 0
 ;PCODE: $00000488 VOL: 0
+<<<<<<< HEAD
 ;PCODE: $00000489 VOL: 0
 ;PCODE: $0000048A VOL: 0
 ;PCODE: $0000048B VOL: 0
@@ -1787,13 +1857,28 @@
 ;	BUFF -> Y+0
 ;PCODE: $0000048C VOL: 0
 ;PCODE: $0000048D VOL: 0
+=======
+; 0000 01F5             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
+; 0000 01F6             puts_USART1(BUFF);
+;PCODE: $00000489 VOL: 0
+;PCODE: $0000048A VOL: 0
+;PCODE: $0000048B VOL: 0
+; 0000 01F7              TIMER0_TIME = 0;
+;PCODE: $0000048C VOL: 0
+;PCODE: $0000048D VOL: 0
+; 0000 01F8         }
+; 0000 01F9 
+; 0000 01FA     }
+>>>>>>> merget
 ;PCODE: $0000048E VOL: 0
 ;PCODE: $0000048F VOL: 0
 ;PCODE: $00000490 VOL: 0
+; 0000 01FB }
 ;PCODE: $00000491 VOL: 0
 ;PCODE: $00000492 VOL: 0
 ;PCODE: $00000493 VOL: 0
 ;PCODE: $00000494 VOL: 0
+<<<<<<< HEAD
 ; 0000 0201     usart0_init(bps_115200);
 ;PCODE: $00000495 VOL: 0
 ;PCODE: $00000496 VOL: 0
@@ -2205,3 +2290,5 @@
 ;PCODE: $000005CA VOL: 0
 ;PCODE: $000005CB VOL: 0
 ;PCODE: $000005CC VOL: 0
+=======
+>>>>>>> merget

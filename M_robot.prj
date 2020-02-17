@@ -118,10 +118,14 @@ DebugBootLoader=0
 WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Build=349
 =======
 Build=500
 >>>>>>> test-testing
+=======
+Build=353
+>>>>>>> merget
 =======
 Build=131
 >>>>>>> test
@@ -321,6 +325,8 @@ BK8=-1
 BK9=-1
 [FoldedCode2]
 >>>>>>> test-testing
+Blocks=0
+[FoldedCode1]
 Blocks=0
 [FoldedCode1]
 Blocks=0

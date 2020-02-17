@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 VERSION:3 SOURCE_TIMESTAMP:50518D16
+=======
+VERSION:3 SOURCE_TIMESTAMP:50518F15
+>>>>>>> merget
 NODE:I LEVEL:0 LINE:1 "C:\cvavreval\inc\mega128.h"
 NODE:I LEVEL:0 LINE:2 "C:\cvavreval\inc\stdio.h"
 NODE:I LEVEL:0 LINE:3 "C:\cvavreval\inc\delay.h"

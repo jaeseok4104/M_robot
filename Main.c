@@ -532,7 +532,7 @@ void main(void)
             PORTB.1 = 1;
             
             UCSR1B &= ~(1<<RXEN1);
-            sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+            // sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
             // sscanf(VELOCITY_BUFF,"<%d,%d,%f,%f,%f>", &velocity, &angularV, &goal_x, &goal_y, goal_angular);
 
             if(!del_ms){
@@ -573,10 +573,12 @@ void main(void)
         delay_ms(5);
         // puts_Modbus1(PACKET_BUFF,PACKET_BUFF_IDX);
         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
+        // delay_ms(5);
         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
         // puts_Modbus1(PACKET_BUFF,PACKET_BUFF_IDX);
         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
+        // delay_ms(5);
 
         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
@@ -596,12 +598,12 @@ void main(void)
         }
 
         TIMER0_TIME += control_time;
-        if(TIMER0_TIME>0.1){
+        if(TIMER0_TIME>0.05){
             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-            // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula);
-            sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, -goal_current_L);
+            // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula/2);
+            sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
             puts_USART1(BUFF);
             TIMER0_TIME = 0;
