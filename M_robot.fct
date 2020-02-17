@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 main DSTACK_USAGE:152 DSTACK_LEVEL:152 FILE:"Main.c" LINE:462
 sprintf DSTACK_USAGE:14 DSTACK_LEVEL:166 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1410
 _print DSTACK_USAGE:94 DSTACK_LEVEL:260 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1162
@@ -5,3 +6,12 @@ _ftoe DSTACK_USAGE:16 DSTACK_LEVEL:276 FILE:"C:\cvavreval\lib\stdio.lib" LINE:10
 floor DSTACK_USAGE:4 DSTACK_LEVEL:280 FILE:"C:\cvavreval\lib\math.lib" LINE:659
 ftrunc DSTACK_USAGE:4 DSTACK_LEVEL:284 FILE:"C:\cvavreval\lib\math.lib" LINE:544
 usart0_rxc DSTACK_USAGE:4 DSTACK_LEVEL:288 FILE:"Main.c" LINE:409
+=======
+main DSTACK_USAGE:578 DSTACK_LEVEL:578 FILE:"Main.c" LINE:374
+sprintf DSTACK_USAGE:14 DSTACK_LEVEL:592 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1410
+_print DSTACK_USAGE:94 DSTACK_LEVEL:686 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1162
+_ftoe DSTACK_USAGE:16 DSTACK_LEVEL:702 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1098
+floor DSTACK_USAGE:4 DSTACK_LEVEL:706 FILE:"C:\cvavreval\lib\math.lib" LINE:659
+ftrunc DSTACK_USAGE:4 DSTACK_LEVEL:710 FILE:"C:\cvavreval\lib\math.lib" LINE:544
+usart0_rxc DSTACK_USAGE:4 DSTACK_LEVEL:714 FILE:"Main.c" LINE:318
+>>>>>>> test-testing
