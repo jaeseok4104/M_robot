@@ -495,10 +495,6 @@ interrupt [TIM1_COMPB] void timer0_comp(void)
     TCNT1L = 0x00;
 }
 
-interrupt [TIM1_COMPB] void timer0_comp(void)
-{
-    SRF02_CONVERTING_FLAG = 1;
-}
 void main(void)
 {
     float a_buff;
@@ -536,11 +532,6 @@ void main(void)
     float TIMER0_TIME = 0;
     
     unsigned char BUFF[500] = {0,};
-
-    /////////////////Ultra sonic/////////////////////////
-    unsigned char USID[10] = {0xE0, 0xE2, 0xE4, 0xE6, 0xE8, 0xEA, 0xEC, 0xEE};
-    unsigned char us_range[10] = {0,};
-    unsigned char pre_us_range[10] = {0,};
 
     usart1_init(bps_115200);
     usart0_init(bps_115200);
