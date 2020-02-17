@@ -21,12 +21,12 @@ PageIndex0=0
 OF1=Main.c
 Active1=1
 EditorPanel1=0
-TimeStamp1=1332157057
+TimeStamp1=1347517666
 PageIndex1=1
 F1=Main.c
 [Compiler]
 RebuildAll=0
-LinkageInformationPresent=0
+LinkageInformationPresent=1
 Chip=ATmega128
 CPUClock=14745600
 MemoryModel=1
@@ -118,7 +118,7 @@ DebugBootLoader=0
 WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
 <<<<<<< HEAD
-Build=325
+Build=349
 =======
 Build=500
 >>>>>>> test-testing
@@ -260,7 +260,7 @@ CheckSignature=1
 CheckErasure=0
 PreserveEEPROM=0
 VerifyProgramming=1
-ProgrammingCounter=241
+ProgrammingCounter=247
 RunUserProg=0
 UserProgPath=
 UserProgCmdLine=
@@ -276,16 +276,16 @@ F1=Main.c
 F2=C:\cvavreval\inc\mega128.h
 [Bookmarks1]
 <<<<<<< HEAD
-TimeStamp=1346214377
-Row=14
-Column=49
+TimeStamp=1347519605
+Row=11
+Column=36
 =======
 TimeStamp=1347118771
 Row=0
 Column=0
 >>>>>>> test-testing
 ScrollPosX=0
-ScrollPosY=39
+ScrollPosY=0
 BK0=-1
 BK1=-1
 BK2=-1
@@ -302,10 +302,7 @@ Column=0
 ScrollPosX=0
 ScrollPosY=0
 <<<<<<< HEAD
-TimeStamp=1345424058
-[FoldedCode1]
-=======
-TimeStamp=1347119594
+TimeStamp=1347517832
 [Bookmarks2]
 TimeStamp=1332611316
 Row=14
@@ -325,12 +322,11 @@ BK9=-1
 [FoldedCode2]
 >>>>>>> test-testing
 Blocks=0
+[FoldedCode1]
+Blocks=0
 [HeadersList]
 Files=1
 F1=C:\Users\ekzm5\Work\AVR\M_robot\Main.c
-[FoldedCode1]
-Blocks=0
->>>>>>> test-testing
 [Header1]
 Files=6
 F1=C:\cvavreval\inc\mega128.h

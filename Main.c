@@ -137,11 +137,11 @@ void puts_Modbus1(char *str,char IDX)
 {
     unsigned char i = 0;
     UCSR0B &= ~(1<<RXEN0);
-    if(TIMER2_OVERFLOW>0)
-    {       
+    // if(TIMER2_OVERFLOW>0)
+    // {       
         for(i = 0;i<IDX;i++) putch_USART1(*(str+i));
         for(i = 0; i<IDX; i++) *(str+i) = 0;
-    }
+    // }
     UCSR0B |= (1<<RXEN0);
 }
 
@@ -190,7 +190,7 @@ int RTU_WriteOperate0(char device_address,int starting_address,int data)
     char protocol[8];
     unsigned short crc16;
     int i=0;
-    //PACKET_BUFF_IDX = 0;
+    PACKET_BUFF_IDX = 0;
 
     protocol[0]=device_address;
     protocol[1]=0x06;
@@ -213,40 +213,12 @@ int RTU_WriteOperate0(char device_address,int starting_address,int data)
     }
 }
 
-int RTU_WriteOperate1(char device_address,int starting_address,int data)
-{
-    char protocol[8];
-    unsigned short crc16;
-    int i=0;
-   // PACKET_BUFF_IDX = 0;
-
-    protocol[0]=device_address;
-    protocol[1]=0x06;
-    protocol[2]=((starting_address>>8)  & 0x00ff);
-    protocol[3]=((starting_address)     & 0x00ff);
-    protocol[4]=((data>>8)              & 0x00ff);
-    protocol[5]=((data)                 & 0x00ff);
-    protocol[6]=0;
-    protocol[7]=0;
-    
-    crc16 = CRC16(protocol, 6);
-    
-    protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
-    protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
-               
-    
-    for(i=0;i<8;i++)
-    {
-        putch_USART1(*(protocol+i));
-    }
-}
-
 int RTU_ReedOperate0(char device_address,int starting_address,int data)
 {
     char protocol[8];
     unsigned short crc16;
     int i=0;
-    //PACKET_BUFF_IDX = 0;
+    PACKET_BUFF_IDX = 0;
 
     protocol[0]=device_address;
     protocol[1]=0x04;
@@ -295,28 +267,30 @@ void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
 void oper_Disapath(int velocity_R, int velocity_L)
 {
     RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-    delay_ms(5);
+    delay_ms(1);
 
     RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-    delay_ms(5);
+    delay_ms(1);
     
     RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
-    delay_ms(5);
+    delay_ms(1);
 
     RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
-    delay_ms(5);
+    delay_ms(1);
 }
 
 int get_RPM(char *str,char IDX, int* goal)
 {
     unsigned char i = 0;
     unsigned int RPM = 0;
+    if(PACKET_BUFF[1] == 0x04){
+        RPM = (int)(PACKET_BUFF[5] << 8)+ (int)(PACKET_BUFF[6]);
+        *goal = (int)(PACKET_BUFF[3] << 8) + (int)(PACKET_BUFF[4]);
+        for(i = 0; i<IDX; i++) *(str+i) = 0;
 
-    RPM = (int)(PACKET_BUFF[5] << 8)+ (int)(PACKET_BUFF[6]);
-    *goal = (int)(PACKET_BUFF[3] << 8) + (int)(PACKET_BUFF[4]);
-    for(i = 0; i<IDX; i++) *(str+i) = 0;
-
-    return RPM;
+        return RPM;
+    }
+    return -1;
 }
 
 ///////////////// TWI /////////////////////////////
@@ -442,19 +416,19 @@ void Get_SRF02_Range_filter(unsigned char ID, unsigned int* range, unsigned int*
 
 interrupt [USART0_RXC] void usart0_rxc(void)
 {
-    if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
-    {
+    // if(((TCNT2 < CHARACTER3_5) && (TIMER2_OVERFLOW == 0)) || PACKET_BUFF_IDX == 0)
+    // {
         PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
         PACKET_BUFF_IDX++;
-        TCNT2 = 0;
-    }
-    else {
-        PACKET_BUFF_IDX = 0;
-        PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
-        PACKET_BUFF_IDX++;
-        TCNT2 = 0;
-        TIMER2_OVERFLOW = 0;
-    }
+        // TCNT2 = 0;
+    // }
+    // else {
+    //     PACKET_BUFF_IDX = 0;
+    //     PACKET_BUFF[PACKET_BUFF_IDX] = UDR0;
+    //     PACKET_BUFF_IDX++;
+    //     TCNT2 = 0;
+    //     TIMER2_OVERFLOW = 0;
+    // }
 }
 
 interrupt [USART1_RXC] void usart1_rxc(void)
@@ -507,6 +481,7 @@ void main(void)
     int past_velocity_R = 0;
     int past_velocity_L = 0;
     int del_ms = 0;
+    char del_ms_flags = 0;
     
     int currentRPM_R = 0;
     int currentRPM_L = 0;
@@ -532,6 +507,7 @@ void main(void)
     float TIMER0_TIME = 0;
     
     unsigned char BUFF[500] = {0,};
+    
 
     usart1_init(bps_115200);
     usart0_init(bps_115200);
@@ -576,6 +552,7 @@ void main(void)
             TIMER1_OVERFLOW = 0;
             TCNT1L = 0;            
 
+            del_ms_flags = 0;
             CHECK_GETS = 0;
             UCSR1B |=(1<<RXEN1);
             // PORTB.1 = 0;
@@ -583,22 +560,23 @@ void main(void)
 
         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
 
-        if(del_ms<TIMER1_TIME)
+        if(del_ms<TIMER1_TIME && del_ms_flags == 0)
         {
             oper_Disapath(0,0);   
             TIMER1_OVERFLOW = 0;
             v_buff = 0;
             a_buff = 0;
+            del_ms_flags = 1;
         }
 
         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
+        // puts_Modbus1(PACKET_BUFF,PACKET_BUFF_IDX);
         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
-        delay_ms(5);
         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
+        // puts_Modbus1(PACKET_BUFF,PACKET_BUFF_IDX);
         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
-        delay_ms(5);
 
         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
@@ -619,14 +597,14 @@ void main(void)
 
         TIMER0_TIME += control_time;
         if(TIMER0_TIME>0.1){
-            sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
+            // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
             // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula);
-            // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
+            sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, -goal_current_L);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
             puts_USART1(BUFF);
-             TIMER0_TIME = 0;
+            TIMER0_TIME = 0;
         }
 
     }
