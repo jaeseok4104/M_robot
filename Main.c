@@ -43,26 +43,6 @@
 #define ts 0.070         /// 샘플링 시간
 #define tau 0.1         /// 시정수
 
-//////////US/////////////////
-#define Inches 0x50
-#define Centimeters 0x51
-#define microSec 0x52
-
-#define tau 0.1 //LOWPASS_FILTER
-#define ts 0.7//SAMPLING CYCLE
-
-#define CommandReg 0
-#define Unused 1
-#define RangeHighByte 2
-#define RangeLowByte 3
-
-#define TWI_START 0x08
-#define MT_REPEATED_START 0x10
-#define MT_SLAW_ACK 0x18
-#define MT_DATA_ACK 0x28
-#define MT_SLAR_ACK 0x40
-#define MT_DATA_NACK 0x58
-
 //////////////////////integer////////////////
 unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
@@ -456,80 +436,6 @@ void Get_SRF02_Range_filter(unsigned char ID, unsigned int* range, unsigned int*
         SRF02_WAIT_FLAG = 0;
         
     }
-}
-
-////////////////////////////////////TWI_Ultra_Sonic//////////////////////////////////////////////////
-
-unsigned char TWI_Read(unsigned char addr, unsigned char regAddr)
-{
-    unsigned char Data;
-    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));//Start조건 전송
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));
-    
-    TWDR = addr&(~0x01);                //쓰기 위한 주소 전송
-    TWCR = ((1<<TWINT)|(1<<TWEN));
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
-    
-    TWDR = regAddr;                     //Reg주소 전송
-    TWCR = ((1<<TWINT)|(1<<TWEN));
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
-    
-    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA)); //Repeated start 전송
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_REPEATED_START));
-    
-    TWDR = addr|0x01;                       //읽기 위한 주소 전송
-    TWCR = ((1<<TWINT)|(1<<TWEN));
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAR_ACK));
-                                    
-    
-    TWCR = ((1<<TWINT)|(1<<TWEN));                
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_NACK));
-    Data = TWDR;                        //Data읽기
-    
-    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
-    
-    return Data;    
-}
-
-void TWI_Write(unsigned char addr, unsigned char Data[],int NumberOfData)
-{
-    int i=0;
-    
-    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTA));
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=TWI_START));  
-    
-    TWDR = addr&(~0x01);
-    TWCR = ((1<<TWINT)|(1<<TWEN));  
-    while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_SLAW_ACK));
-    
-    for(i=0;i<NumberOfData;i++){
-        TWDR = Data[i];
-        TWCR = ((1<<TWINT)|(1<<TWEN));  
-        while(((TWCR & (1 << TWINT)) == 0x00) || ((TWSR & 0xf8)!=MT_DATA_ACK));
-    }
-    
-    TWCR = ((1<<TWINT)|(1<<TWEN)|(1<<TWSTO));
-}
-
-void Start_SRF02_Conv(unsigned char Adress, unsigned char mode){
-    unsigned char ConvMode[2] = {0x00,};
-    ConvMode[1] = mode;
-    TWI_Write(Adress,ConvMode,2);
-}
-
-unsigned int Get_SRF02_Range(unsigned char Adress)
-{
-    unsigned int range;
-    unsigned char High = 0,Low = 0;
-
-    High = TWI_Read(Adress, RangeHighByte);
-    if(High == 0xFF){
-        return 0;
-    }
-    Low = TWI_Read(Adress, RangeLowByte);
-    range = (High<<8)+Low;
-
-    return range;
 }
 
 /////////////////////ISR//////////////////////////////////
