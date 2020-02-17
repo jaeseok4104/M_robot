@@ -87,7 +87,7 @@ void timer2_init(void)
     //TIMER2
     TCCR2 = (1<<WGM21)|(1<<CS21)|(1<<CS20);// CTC모드, 1분주
 
-    OCR2 = 100;
+    OCR2 = 40;
     TIMSK = (1<<OCIE2)|(1<<OCIE0); 
     //TIMSK = (1<<OCIE2);
 }
