@@ -3,8 +3,7 @@ Variable                                                          Address   Size
 --------------------------------------------------------------------------------
 PACKET_BUFF                                                       0x0500     100
 VELOCITY_BUFF                                                     0x0564      20
-TIMER1_OVERFLOW                                                   0x0578       2
-_seed                                                             0x057A       4
+_seed                                                             0x0578       4
 
 EEPROM Allocation
 Variable                                                          Address   Size
@@ -17,7 +16,6 @@ TIMER2_OVERFLOW                                                   R5           1
 PACKET_BUFF_IDX                                                   R4           1
 TIMER0_OVERFLOW                                                   R6,R7        2
 VELOCITY_BUFF_IDX                                                 R9           1
-SRF02_CONVERTING_FLAG                                             R8           1
-SRF02_WAIT_FLAG                                                   R11          1
-CHECK_GETS                                                        R10          1
-CHECK_CONTROL                                                     R13          1
+CHECK_GETS                                                        R8           1
+CHECK_CONTROL                                                     R11          1
+TIMER1_OVERFLOW                                                   R12,R13      2
