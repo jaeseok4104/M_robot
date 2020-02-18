@@ -213,34 +213,6 @@ int RTU_WriteOperate0(char device_address,int starting_address,int data)
     }
 }
 
-int RTU_WriteOperate1(char device_address,int starting_address,int data)
-{
-    char protocol[8];
-    unsigned short crc16;
-    int i=0;
-   // PACKET_BUFF_IDX = 0;
-
-    protocol[0]=device_address;
-    protocol[1]=0x06;
-    protocol[2]=((starting_address>>8)  & 0x00ff);
-    protocol[3]=((starting_address)     & 0x00ff);
-    protocol[4]=((data>>8)              & 0x00ff);
-    protocol[5]=((data)                 & 0x00ff);
-    protocol[6]=0;
-    protocol[7]=0;
-    
-    crc16 = CRC16(protocol, 6);
-    
-    protocol[6] = (unsigned char)((crc16>>0) & 0x00ff);
-    protocol[7] = (unsigned char)((crc16>>8) & 0x00ff);
-               
-    
-    for(i=0;i<8;i++)
-    {
-        putch_USART1(*(protocol+i));
-    }
-}
-
 int RTU_ReedOperate0(char device_address,int starting_address,int data)
 {
     char protocol[8];
@@ -552,9 +524,7 @@ void main(void)
     while(1)
     {
         if(CHECK_GETS)
-        {            
-            PORTB.1 = 1;
-            
+        {                      
             UCSR1B &= ~(1<<RXEN1);
             sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
             // sscanf(VELOCITY_BUFF,"<%d,%d,%f,%f,%f>", &velocity, &angularV, &goal_x, &goal_y, goal_angular);
@@ -578,7 +548,6 @@ void main(void)
 
             CHECK_GETS = 0;
             UCSR1B |=(1<<RXEN1);
-            // PORTB.1 = 0;
         }
 
         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
@@ -591,14 +560,13 @@ void main(void)
             a_buff = 0;
         }
 
+        delay_ms(5);
         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
-        delay_ms(5);
         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
-        delay_ms(5);
 
         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
@@ -610,15 +578,13 @@ void main(void)
         TIMER0_OVERFLOW = 0;
         TCNT0 = 0;
 
-        if((d_velocity!=0) ||(d_angularV!=0)){
-            d_x += d_velocity*control_time*cos(control_time*d_angularV);
-            d_y += d_velocity*control_time*sin(control_time*d_angularV);
-            d_angular += control_time*d_angularV;
-            d_angular_circula = (int)(d_angular*Circular);
-        }
+        d_angular += control_time*d_angularV;
+        d_x += d_velocity*control_time*cos(d_angular);
+        d_y += d_velocity*control_time*sin(d_angular);
+        d_angular_circula = (int)(d_angular*Circular);
 
         TIMER0_TIME += control_time;
-        if(TIMER0_TIME>0.1){
+        if(TIMER0_TIME>0.05){
             sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
@@ -628,6 +594,5 @@ void main(void)
             puts_USART1(BUFF);
              TIMER0_TIME = 0;
         }
-
     }
 }
