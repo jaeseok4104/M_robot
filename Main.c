@@ -251,9 +251,7 @@ void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
     }
 
     VelocityR = *_velocity+(*_angularV*Length)/2;
-    // VelocityR = *_velocity+(*_angularV*Length)/4;
     VelocityL = *_velocity-(*_angularV*Length)/2;
-    // VelocityL = *_velocity-(*_angularV*Length)/4;
 
     *R_RPM = (int)(152.788*VelocityR*Gearratio);
     *L_RPM = (int)(152.788*VelocityL*Gearratio);
@@ -284,11 +282,13 @@ int get_RPM(char *str,char IDX, int* goal)
     unsigned char i = 0;
     unsigned int RPM = 0;
 
-    RPM = (int)(PACKET_BUFF[5] << 8)+ (int)(PACKET_BUFF[6]);
-    *goal = (int)(PACKET_BUFF[3] << 8) + (int)(PACKET_BUFF[4]);
-    for(i = 0; i<IDX; i++) *(str+i) = 0;
+    if(PACKET_BUFF[1] != 0x07){
+        RPM = (int)(PACKET_BUFF[5] << 8)+ (int)(PACKET_BUFF[6]);
+        *goal = (int)(PACKET_BUFF[3] << 8) + (int)(PACKET_BUFF[4]);
+        for(i = 0; i<IDX; i++) *(str+i) = 0;
 
-    return RPM;
+        return RPM;
+    }
 }
 
 ///////////////// TWI /////////////////////////////
@@ -502,6 +502,8 @@ void main(void)
 
     float TIMER1_TIME = 0;
     float TIMER0_TIME = 0;
+
+    char STOP_FLAG = 0;
     
     unsigned char BUFF[500] = {0,};
 
@@ -546,18 +548,20 @@ void main(void)
             TIMER1_OVERFLOW = 0;
             TCNT1L = 0;            
 
+            STOP_FLAG = 1;
             CHECK_GETS = 0;
             UCSR1B |=(1<<RXEN1);
         }
 
         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
 
-        if(del_ms<TIMER1_TIME)
+        if((del_ms<TIMER1_TIME) && (STOP_FLAG == 1))
         {
             oper_Disapath(0,0);   
             TIMER1_OVERFLOW = 0;
             v_buff = 0;
             a_buff = 0;
+            STOP_FLAG = 0;
         }
 
         delay_ms(5);
@@ -585,11 +589,11 @@ void main(void)
 
         TIMER0_TIME += control_time;
         if(TIMER0_TIME>0.05){
-            sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
+            // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
             // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
             // sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula);
-            // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
+            sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
             puts_USART1(BUFF);
              TIMER0_TIME = 0;
