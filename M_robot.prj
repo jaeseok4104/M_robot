@@ -21,7 +21,11 @@ PageIndex0=0
 OF1=Main.c
 Active1=1
 EditorPanel1=0
+<<<<<<< HEAD
 TimeStamp1=1347517666
+=======
+TimeStamp1=1347526076
+>>>>>>> merget
 PageIndex1=1
 F1=Main.c
 [Compiler]
@@ -119,12 +123,16 @@ WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Build=349
 =======
 Build=500
 >>>>>>> test-testing
 =======
 Build=353
+>>>>>>> merget
+=======
+Build=373
 >>>>>>> merget
 =======
 Build=131
@@ -264,7 +272,11 @@ CheckSignature=1
 CheckErasure=0
 PreserveEEPROM=0
 VerifyProgramming=1
+<<<<<<< HEAD
 ProgrammingCounter=247
+=======
+ProgrammingCounter=275
+>>>>>>> merget
 RunUserProg=0
 UserProgPath=
 UserProgCmdLine=
@@ -280,6 +292,7 @@ F1=Main.c
 F2=C:\cvavreval\inc\mega128.h
 [Bookmarks1]
 <<<<<<< HEAD
+<<<<<<< HEAD
 TimeStamp=1347519605
 Row=11
 Column=36
@@ -290,6 +303,13 @@ Column=0
 >>>>>>> test-testing
 ScrollPosX=0
 ScrollPosY=0
+=======
+TimeStamp=1347526076
+Row=277
+Column=49
+ScrollPosX=0
+ScrollPosY=358
+>>>>>>> merget
 BK0=-1
 BK1=-1
 BK2=-1
@@ -306,7 +326,11 @@ Column=0
 ScrollPosX=0
 ScrollPosY=0
 <<<<<<< HEAD
+<<<<<<< HEAD
 TimeStamp=1347517832
+=======
+TimeStamp=1347552419
+>>>>>>> merget
 [Bookmarks2]
 TimeStamp=1332611316
 Row=14
