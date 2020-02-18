@@ -16,7 +16,7 @@
 #define START 1
 #define STOP 2
 
-#define Length 0.29
+#define Length 0.281
 #define Gearratio 20
 
 #define Circular 57.29                      // 180 / PI
@@ -274,8 +274,8 @@ void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
         *_angularV = -(*_angularV);
     }
 
-    VelocityR = *_velocity+(*_angularV*Length)/4;
-    VelocityL = *_velocity-(*_angularV*Length)/4;
+    VelocityR = *_velocity+(*_angularV*Length)/2;
+    VelocityL = *_velocity-(*_angularV*Length)/2
 
     *R_RPM = (int)(152.788*VelocityR*Gearratio);
     *L_RPM = (int)(152.788*VelocityL*Gearratio);
@@ -398,8 +398,14 @@ void main(void)
     float d_angular = 0;
     int d_angular_circula = 0;
 
+    float goal_x = 0;
+    float goal_y = 0;
+    int goal_angular = 0;
+
     float TIMER1_TIME = 0;
     float TIMER0_TIME = 0;
+
+    char rootine_test = 0;
     
     unsigned char BUFF[500] = {0,};
 
@@ -421,62 +427,96 @@ void main(void)
 
     while(1)
     {
-        if(CHECK_GETS)
-        {            
-            PORTB.1 = 1;
+        // if(CHECK_GETS)
+        // {            
+        //     PORTB.1 = 1;
             
-            UCSR1B &= ~(1<<RXEN1);
-            sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+        //     UCSR1B &= ~(1<<RXEN1);
+        //     // sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+        //     sscanf(VELOCITY_BUFF,"<%f,%f,%d>", &goal_x, &goal_y, &goal_angular);
 
-            if(!del_ms){
-                d_x = 0;
-                d_y = 0;
-                d_angular = 0;
-            }
+        //     if(!del_ms){
+        //         d_x = 0;
+        //         d_y = 0;
+        //         d_angular = 0;
+        //     }
             
-            v_buff = (float)velocity/1000;
-            a_buff = (float)angularV/1000;
+        //     v_buff = (float)velocity/1000;
+        //     a_buff = (float)angularV/1000;
             
-            Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+        //     // Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 
-            oper_Disapath(velocity_R, velocity_L);
-            // oper_Disapath(velocity, -velocity);
+        //     // oper_Disapath(velocity_R, velocity_L);
 
-            TIMER1_TIME = 0;
-            TIMER1_OVERFLOW = 0;
-            TCNT1L = 0;            
+        //     // TIMER1_TIME = 0;
+        //     // TIMER1_OVERFLOW = 0;
+        //     // TCNT1L = 0;            
 
-            CHECK_GETS = 0;
-            UCSR1B |=(1<<RXEN1);
-            // PORTB.1 = 0;
-        }
+        //     rootine_test = 0;
+        //     CHECK_GETS = 0;
+        //     UCSR1B |=(1<<RXEN1);
+        //     // PORTB.1 = 0;
+        // }
 
-        TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
-
-        if(del_ms<TIMER1_TIME)
+        if((d_x<1)||(rootine_test == 0))
         {
-            oper_Disapath(0,0);   
-            TIMER1_OVERFLOW = 0;
-            v_buff = 0;
+            v_buff = 0.3;
             a_buff = 0;
+            if(rootine_test==0)
+            {
+                Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+                oper_Disapath(velocity_R,velocity_L);
+            }
+            rootine_test = 1;
         }
+        else if((d_angular_circula<90)||(rootine_test == 1))
+        {
+            v_buff = 0;
+            a_buff = -2.5;
+            if(rootine_test==1)
+            {
+                Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+                oper_Disapath(velocity_R,velocity_L);
+            }
+            rootine_test = 2;
+        }
+        else if((d_y<1)||(rootine_test == 2))
+        {
+            v_buff = 0.3;
+            a_buff = 0;
+            if(rootine_test==2)
+            {
+                Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+                oper_Disapath(velocity_R,velocity_L);
+            }
+            rootine_test = 3;
+        }
+        else oper_Disapath(0,0);
+
+        // TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
+
+        // if(del_ms<TIMER1_TIME)
+        // {
+        //     oper_Disapath(0,0);   
+        //     TIMER1_OVERFLOW = 0;
+        //     v_buff = 0;
+        //     a_buff = 0;
+        // }
 
         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
-        // currentV_R = (float)(get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R)/(152.788*Gearratio));
-        delay_ms(5);
+        // delay_ms(5);
         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
         delay_ms(5);
         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
-        // currentV_L = -(float)(get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L)/(152.788*Gearratio));
-        delay_ms(5);
+        // delay_ms(5);
 
         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
 
         d_velocity = (currentV_R + currentV_L)/2;
-        d_angularV = (2*(currentV_R-currentV_L))/Length;
+        d_angularV = (currentV_R-currentV_L)/Length;
 
         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
         TIMER0_OVERFLOW = 0;
@@ -487,16 +527,16 @@ void main(void)
             d_y += d_velocity*control_time*sin(control_time*d_angularV);
             d_angular += control_time*d_angularV;
             d_angular_circula = (int)(d_angular*Circular);
-        } 
+        }
+
         TIMER0_TIME += control_time;
-        // sprintf(BUFF, "%f, %f, %f, %6d, %6d, %6d, %6d, %6d\n", d_angularV, control_time*d_angularV,d_angular,
-        //                                                     d_angular_circula, currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
-        if(TIMER0_TIME>0.1){
+        if(TIMER0_TIME>0.05){
             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
-            // sprintf(BUFF, "%f, %f, %6d, %d, %d\n", d_x, d_y, d_angular_circula, currentRPM_R, currentRPM_L);
+            // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-            sprintf(BUFF, "%f, %f, %6d, %6d, %6d, %f, %f\n", d_x, d_y, d_angular_circul/2, currentRPM_R, currentRPM_L, currentV_R, currentV_L);
+            sprintf(BUFF, "%.3f, %.3f, %4d\n", d_x, d_y, d_angular_circula);
             // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, currentRPM_L, goal_current_R, goal_current_L);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
             puts_USART1(BUFF);
              TIMER0_TIME = 0;
         }
