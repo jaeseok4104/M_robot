@@ -1,0 +1,26 @@
+extern int MOTORR_HALL;
+extern int MOTORL_HALL;
+
+interrupt [EXT_INT5] void hall_sensor_detection1(void)
+{
+    if(HALLA != HALLB) hall_sensor_value--;
+    else hall_sensor_value++;    
+}
+
+interrupt [EXT_INT5] void hall_sensor_detection1(void)
+{
+    if(HALLA != HALLB) hall_sensor_value--;
+    else hall_sensor_value++;    
+}
+
+interrupt [EXT_INT6] void hall_sensor_detection2(void)
+{
+    if(HALLB != HALLC) hall_sensor_value--;
+    else hall_sensor_value++;
+}
+
+interrupt [EXT_INT7] void hall_sensor_detection3(void)
+{
+    if(HALLC != HALLA) hall_sensor_value--;
+    else hall_sensor_value++;
+}

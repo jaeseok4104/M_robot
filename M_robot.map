@@ -1,14 +1,17 @@
 RAM Allocation
 Variable                                                          Address   Size
 --------------------------------------------------------------------------------
-PACKET_BUFF                                                       0x0500     100
-VELOCITY_BUFF                                                     0x0564      20
-<<<<<<< HEAD
-TIMER1_OVERFLOW                                                   0x0578       2
-_seed                                                             0x057A       4
-=======
-_seed                                                             0x0578       4
->>>>>>> developtest
+TIMER1_OVERFLOW                                                   0x0500       2
+TIMER2_OVERFLOW                                                   0x0502       1
+PACKET_BUFF                                                       0x0503     100
+PACKET_BUFF_IDX                                                   0x0567       1
+TIMER0_OVERFLOW                                                   0x0568       2
+VELOCITY_BUFF                                                     0x056A      20
+VELOCITY_BUFF_IDX                                                 0x057E       1
+CHECK_GETS                                                        0x057F       1
+MOTORR_HALL                                                       0x0580       4
+MOTORL_HALL                                                       0x0584       4
+_seed                                                             0x0588       4
 
 EEPROM Allocation
 Variable                                                          Address   Size
@@ -17,17 +20,3 @@ Variable                                                          Address   Size
 Register Allocation
 Variable                                                          Register  Size
 --------------------------------------------------------------------------------
-TIMER2_OVERFLOW                                                   R5           1
-PACKET_BUFF_IDX                                                   R4           1
-TIMER0_OVERFLOW                                                   R6,R7        2
-VELOCITY_BUFF_IDX                                                 R9           1
-<<<<<<< HEAD
-SRF02_CONVERTING_FLAG                                             R8           1
-SRF02_WAIT_FLAG                                                   R11          1
-CHECK_GETS                                                        R10          1
-CHECK_CONTROL                                                     R13          1
-=======
-CHECK_GETS                                                        R8           1
-CHECK_CONTROL                                                     R11          1
-TIMER1_OVERFLOW                                                   R12,R13      2
->>>>>>> developtest

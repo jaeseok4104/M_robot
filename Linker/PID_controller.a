@@ -1,0 +1,55 @@
+;#include <PID_controller.h>
+;
+;int PID_Controller(int Goal, float now, float* integral, float* Err_previous)
+; 0004 0004 {
+
+	.CSEG
+;PCODE: $00000000 VOL: 0
+;PCODE: $00000001 VOL: 0
+; 0004 0005     long int pErr = 0;
+; 0004 0006     float dErr = 0;
+; 0004 0007     long int MV = 0;
+; 0004 0008     float Err = 0;
+; 0004 0009     unsigned char BUFF[128]={0,};
+; 0004 000A 
+; 0004 000B     Err = Goal - now; //ERROR
+;PCODE: $00000002 VOL: 0
+;PCODE: $00000003 VOL: 0
+;PCODE: $00000004 VOL: 0
+;PCODE: $00000005 VOL: 0
+;PCODE: $00000006 VOL: 0
+;	Goal -> Y+152
+;	now -> Y+148
+;	*integral -> Y+146
+;	*Err_previous -> Y+144
+;	pErr -> Y+140
+;	dErr -> Y+136
+;	MV -> Y+132
+;	Err -> Y+128
+;	BUFF -> Y+0
+;PCODE: $00000007 VOL: 0
+;PCODE: $00000008 VOL: 0
+;PCODE: $00000009 VOL: 0
+;PCODE: $0000000A VOL: 0
+;PCODE: $0000000B VOL: 0
+;PCODE: $0000000C VOL: 0
+; 0004 000C 
+; 0004 000D     // pErr = (Kp*Err); // P
+; 0004 000E     // *integral = *integral +(Ki * Err * Time); // I
+; 0004 000F     // dErr = (Kd * (Err - *Err_previous)) / Time; // D
+; 0004 0010     // MV = (long int)(pErr+ *integral + dErr);// PID Control Volume
+; 0004 0011 
+; 0004 0012     //sprintf(BUFF, "pErr=%d, integral=%d, dErr=%d, MV=%d  Err=%d\r\n", (int)pErr, *integral, dErr, MV, (int)Err);
+; 0004 0013     //string_tx1(BUFF);
+; 0004 0014 
+; 0004 0015     *Err_previous = Err;
+;PCODE: $0000000D VOL: 0
+;PCODE: $0000000E VOL: 0
+;PCODE: $0000000F VOL: 0
+; 0004 0016 
+; 0004 0017     return MV;
+;PCODE: $00000010 VOL: 0
+;PCODE: $00000011 VOL: 0
+;PCODE: $00000012 VOL: 0
+; 0004 0018 }
+;PCODE: $00000013 VOL: 0

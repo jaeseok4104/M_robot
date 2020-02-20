@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "mega128.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
 }
