@@ -10,7 +10,9 @@
 #define STOP 2
 
 #define Length 0.279
+#define Diameter 0.12
 #define Gearratio 20
+#define Pi 3.141592
 
 #define Circular 57.29                      // 180 / PI
 

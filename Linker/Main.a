@@ -31,8 +31,7 @@
 ;#include "RTU_USART.h"
 ;#include "ext_int.h"
 ;
-;#define Pi 3.141592
-;
+;#define PREDICTION 0.3
 ;unsigned char TIMER2_OVERFLOW = 0;
 ;unsigned char PACKET_BUFF[100] = {0,};
 ;unsigned char PACKET_BUFF_IDX = 0;
@@ -48,106 +47,112 @@
 ;long int MOTORL_HALL = 0;
 ;
 ;void main(void)
-; 0000 001B {
+; 0000 001A {
 
 	.CSEG
 ;PCODE: $0000000D VOL: 0
-; 0000 001C     float a_buff;
-; 0000 001D     float v_buff;
-; 0000 001E 
-; 0000 001F     int velocity = 0;
-; 0000 0020     int angularV = 0;
-; 0000 0021     int velocity_R = 0;
-; 0000 0022     int velocity_L = 0;
-; 0000 0023     int del_ms = 0;
-; 0000 0024 
-; 0000 0025     int currentRPM_R = 0;
-; 0000 0026     int currentRPM_L = 0;
-; 0000 0027     float currentV_R = 0;
-; 0000 0028     float currentV_L = 0;
-; 0000 0029     int goal_current_R = 0;
-; 0000 002A     int goal_current_L = 0;
-; 0000 002B     float goal_currentV_R = 0;
-; 0000 002C     float goal_currentV_L = 0;
-; 0000 002D 
+; 0000 001B     float a_buff;
+; 0000 001C     float v_buff;
+; 0000 001D 
+; 0000 001E     int velocity = 0;
+; 0000 001F     int angularV = 0;
+; 0000 0020     int velocity_R = 0;
+; 0000 0021     int velocity_L = 0;
+; 0000 0022     int del_ms = 0;
+; 0000 0023     float del_s = 0;
+; 0000 0024     int diameter = 0;
+; 0000 0025 
+; 0000 0026     int currentRPM_R = 0;
+; 0000 0027     int currentRPM_L = 0;
+; 0000 0028     float currentV_R = 0;
+; 0000 0029     float currentV_L = 0;
+; 0000 002A     int goal_current_R = 0;
+; 0000 002B     int goal_current_L = 0;
+; 0000 002C     float goal_currentV_R = 0;
+; 0000 002D     float goal_currentV_L = 0;
 ; 0000 002E 
-; 0000 002F     float d_velocity = 0;
-; 0000 0030     float d_angularV = 0;
-; 0000 0031     float control_time = 0;
-; 0000 0032     float g_velocity = 0;
-; 0000 0033     float g_angularV = 0;
-; 0000 0034 
-; 0000 0035     float d_x = 0;
-; 0000 0036     float d_y = 0;
-; 0000 0037     float d_angular = 0;
-; 0000 0038     int d_angular_circula = 0;
-; 0000 0039     float g_x = 0;
-; 0000 003A     float g_y = 0;
-; 0000 003B     float g_angular = 0;
-; 0000 003C     int g_angular_circula = 0;
-; 0000 003D 
-; 0000 003E     float TIMER1_TIME = 0;
-; 0000 003F     float TIMER0_TIME = 0;
-; 0000 0040     float TIMER0_TIME_print = 0;
-; 0000 0041 
-; 0000 0042     char rootine_test = 0;
-; 0000 0043     char STOP_FLAG = 0;
-; 0000 0044 
+; 0000 002F 
+; 0000 0030     float d_velocity = 0;
+; 0000 0031     float d_angularV = 0;
+; 0000 0032     float control_time = 0;
+; 0000 0033     float g_velocity = 0;
+; 0000 0034     float g_angularV = 0;
+; 0000 0035 
+; 0000 0036     float d_x = 0;
+; 0000 0037     float d_y = 0;
+; 0000 0038     float d_angular = 0;
+; 0000 0039     int d_angular_circula = 0;
+; 0000 003A     float g_x = 0;
+; 0000 003B     float g_y = 0;
+; 0000 003C     float g_angular = 0;
+; 0000 003D     int g_angular_circula = 0;
+; 0000 003E 
+; 0000 003F     float TIMER1_TIME = 0;
+; 0000 0040     float TIMER0_TIME = 0;
+; 0000 0041     float TIMER0_TIME_print = 0;
+; 0000 0042 
+; 0000 0043     char rootine_test = 0;
+; 0000 0044     char STOP_FLAG = 0;
 ; 0000 0045 
-; 0000 0046     float hall_x = 0;
-; 0000 0047     float hall_y = 0;
-; 0000 0048     float hall_angular = 0;
-; 0000 0049     int hall_angular_circula = 0;
-; 0000 004A 
-; 0000 004B     float motorR_distance = 0;
-; 0000 004C     float motorL_distance = 0;
-; 0000 004D     float a =0;
-; 0000 004E 
-; 0000 004F     unsigned char BUFF[500] = {0,};
+; 0000 0046 
+; 0000 0047     float hall_x = 0;
+; 0000 0048     float hall_y = 0;
+; 0000 0049     float hall_angular = 0;
+; 0000 004A     int hall_angular_circula = 0;
+; 0000 004B     float hall_velocity = 0;
+; 0000 004C 
+; 0000 004D     float motorR_distance = 0;
+; 0000 004E     float motorL_distance = 0;
+; 0000 004F     float a = 0;
 ; 0000 0050 
-; 0000 0051     usart1_init(bps_115200);
+; 0000 0051     unsigned char BUFF[500] = {0,};
+; 0000 0052 
+; 0000 0053     usart1_init(bps_115200);
 ;PCODE: $0000000E VOL: 0
 ;PCODE: $0000000F VOL: 0
 ;PCODE: $00000010 VOL: 0
 ;PCODE: $00000011 VOL: 0
 ;PCODE: $00000012 VOL: 0
-;	a_buff -> Y+620
-;	v_buff -> Y+616
+;	a_buff -> Y+630
+;	v_buff -> Y+626
 ;	velocity -> R16,R17
 ;	angularV -> R18,R19
 ;	velocity_R -> R20,R21
-;	velocity_L -> Y+614
-;	del_ms -> Y+612
-;	currentRPM_R -> Y+610
-;	currentRPM_L -> Y+608
-;	currentV_R -> Y+604
-;	currentV_L -> Y+600
-;	goal_current_R -> Y+598
-;	goal_current_L -> Y+596
-;	goal_currentV_R -> Y+592
-;	goal_currentV_L -> Y+588
-;	d_velocity -> Y+584
-;	d_angularV -> Y+580
-;	control_time -> Y+576
-;	g_velocity -> Y+572
-;	g_angularV -> Y+568
-;	d_x -> Y+564
-;	d_y -> Y+560
-;	d_angular -> Y+556
-;	d_angular_circula -> Y+554
-;	g_x -> Y+550
-;	g_y -> Y+546
-;	g_angular -> Y+542
-;	g_angular_circula -> Y+540
-;	TIMER1_TIME -> Y+536
-;	TIMER0_TIME -> Y+532
-;	TIMER0_TIME_print -> Y+528
-;	rootine_test -> Y+527
-;	STOP_FLAG -> Y+526
-;	hall_x -> Y+522
-;	hall_y -> Y+518
-;	hall_angular -> Y+514
-;	hall_angular_circula -> Y+512
+;	velocity_L -> Y+624
+;	del_ms -> Y+622
+;	del_s -> Y+618
+;	diameter -> Y+616
+;	currentRPM_R -> Y+614
+;	currentRPM_L -> Y+612
+;	currentV_R -> Y+608
+;	currentV_L -> Y+604
+;	goal_current_R -> Y+602
+;	goal_current_L -> Y+600
+;	goal_currentV_R -> Y+596
+;	goal_currentV_L -> Y+592
+;	d_velocity -> Y+588
+;	d_angularV -> Y+584
+;	control_time -> Y+580
+;	g_velocity -> Y+576
+;	g_angularV -> Y+572
+;	d_x -> Y+568
+;	d_y -> Y+564
+;	d_angular -> Y+560
+;	d_angular_circula -> Y+558
+;	g_x -> Y+554
+;	g_y -> Y+550
+;	g_angular -> Y+546
+;	g_angular_circula -> Y+544
+;	TIMER1_TIME -> Y+540
+;	TIMER0_TIME -> Y+536
+;	TIMER0_TIME_print -> Y+532
+;	rootine_test -> Y+531
+;	STOP_FLAG -> Y+530
+;	hall_x -> Y+526
+;	hall_y -> Y+522
+;	hall_angular -> Y+518
+;	hall_angular_circula -> Y+516
+;	hall_velocity -> Y+512
 ;	motorR_distance -> Y+508
 ;	motorL_distance -> Y+504
 ;	a -> Y+500
@@ -161,54 +166,55 @@
 ;PCODE: $00000019 VOL: 0
 ;PCODE: $0000001A VOL: 0
 ;PCODE: $0000001B VOL: 0
-; 0000 0052     usart0_init(bps_115200);
+; 0000 0054     usart0_init(bps_115200);
 ;PCODE: $0000001C VOL: 0
 ;PCODE: $0000001D VOL: 0
 ;PCODE: $0000001E VOL: 0
-; 0000 0053     timer2_init();
+; 0000 0055     timer2_init();
 ;PCODE: $0000001F VOL: 0
-; 0000 0054     timer0_init();
+; 0000 0056     timer0_init();
 ;PCODE: $00000020 VOL: 0
-; 0000 0055     timer1_init();
+; 0000 0057     timer1_init();
 ;PCODE: $00000021 VOL: 0
-; 0000 0056     EXT_INT_init();
+; 0000 0058     EXT_INT_init();
 ;PCODE: $00000022 VOL: 0
-; 0000 0057     SREG |= 0x80;
+; 0000 0059     SREG |= 0x80;
 ;PCODE: $00000023 VOL: 0
-; 0000 0058     DDRB.1 = 1;
+; 0000 005A     DDRB.1 = 1;
 ;PCODE: $00000024 VOL: 0
 ;PCODE: $00000025 VOL: 0
-; 0000 0059     DDRB.2 = 1;
+; 0000 005B     DDRB.2 = 1;
 ;PCODE: $00000026 VOL: 0
 ;PCODE: $00000027 VOL: 0
-; 0000 005A     DDRB.3 = 1;
+; 0000 005C     DDRB.3 = 1;
 ;PCODE: $00000028 VOL: 0
 ;PCODE: $00000029 VOL: 0
-; 0000 005B     delay_ms(5000);
+; 0000 005D     delay_ms(5000);
 ;PCODE: $0000002A VOL: 0
 ;PCODE: $0000002B VOL: 0
 ;PCODE: $0000002C VOL: 0
-; 0000 005C 
-; 0000 005D     TIMER0_OVERFLOW = 0;
+; 0000 005E 
+; 0000 005F     TIMER0_OVERFLOW = 0;
 ;PCODE: $0000002D VOL: 0
 ;PCODE: $0000002E VOL: 0
-; 0000 005E     TCNT0 = 0;
+; 0000 0060     TCNT0 = 0;
 ;PCODE: $0000002F VOL: 0
 ;PCODE: $00000030 VOL: 0
-; 0000 005F 
-; 0000 0060     while(1)
+; 0000 0061 
+; 0000 0062     while(1)
 ;PCODE: $00000031 VOL: 0
-; 0000 0061     {
-; 0000 0062         if(CHECK_GETS)
+; 0000 0063     {
+; 0000 0064         if(CHECK_GETS)
 ;PCODE: $00000032 VOL: 0
 ;PCODE: $00000033 VOL: 0
 ;PCODE: $00000034 VOL: 0
-; 0000 0063         {
-; 0000 0064             UCSR1B &= ~(1<<RXEN1);
+; 0000 0065         {
+; 0000 0066             UCSR1B &= ~(1<<RXEN1);
 ;PCODE: $00000035 VOL: 0
 ;PCODE: $00000036 VOL: 0
 ;PCODE: $00000037 VOL: 0
-; 0000 0065             sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+; 0000 0067             // sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+; 0000 0068             sscanf(VELOCITY_BUFF,"<%d>", &diameter);
 ;PCODE: $00000038 VOL: 0
 ;PCODE: $00000039 VOL: 0
 ;PCODE: $0000003A VOL: 0
@@ -221,11 +227,19 @@
 ;PCODE: $00000041 VOL: 0
 ;PCODE: $00000042 VOL: 0
 ;PCODE: $00000043 VOL: 0
+; 0000 0069             // if(!del_ms){
+; 0000 006A             //     d_x = 0;
+; 0000 006B             //     d_y = 0;
+; 0000 006C             //     d_angular = 0;
+; 0000 006D             // }
+; 0000 006E             if((float)(0.5*0.75)<diameter)
 ;PCODE: $00000044 VOL: 0
 ;PCODE: $00000045 VOL: 0
 ;PCODE: $00000046 VOL: 0
 ;PCODE: $00000047 VOL: 0
 ;PCODE: $00000048 VOL: 0
+; 0000 006F             {
+; 0000 0070                 del_s = (float)((diameter + (0.75*0.5))/0.5);
 ;PCODE: $00000049 VOL: 0
 ;PCODE: $0000004A VOL: 0
 ;PCODE: $0000004B VOL: 0
@@ -234,46 +248,44 @@
 ;PCODE: $0000004E VOL: 0
 ;PCODE: $0000004F VOL: 0
 ;PCODE: $00000050 VOL: 0
+; 0000 0071                 del_s -= 0.75;
 ;PCODE: $00000051 VOL: 0
-; 0000 0066             // sscanf(VELOCITY_BUFF,"<%f,%f,%d>", &goal_x, &goal_y, &goal_angular);
-; 0000 0067 
-; 0000 0068             if(!del_ms){
 ;PCODE: $00000052 VOL: 0
 ;PCODE: $00000053 VOL: 0
 ;PCODE: $00000054 VOL: 0
-; 0000 0069                 d_x = 0;
+; 0000 0072             }
+; 0000 0073             else del_s = (float)(((0.75*0.5)+diameter)/0.5);
 ;PCODE: $00000055 VOL: 0
 ;PCODE: $00000056 VOL: 0
-; 0000 006A                 d_y = 0;
 ;PCODE: $00000057 VOL: 0
 ;PCODE: $00000058 VOL: 0
-; 0000 006B                 d_angular = 0;
 ;PCODE: $00000059 VOL: 0
 ;PCODE: $0000005A VOL: 0
-; 0000 006C             }
-; 0000 006D 
-; 0000 006E             v_buff = (float)velocity/1000;
 ;PCODE: $0000005B VOL: 0
 ;PCODE: $0000005C VOL: 0
 ;PCODE: $0000005D VOL: 0
 ;PCODE: $0000005E VOL: 0
+; 0000 0074 
+; 0000 0075             del_ms = (int)(del_s*1000);
 ;PCODE: $0000005F VOL: 0
 ;PCODE: $00000060 VOL: 0
 ;PCODE: $00000061 VOL: 0
-; 0000 006F             a_buff = (float)angularV/1000;
 ;PCODE: $00000062 VOL: 0
 ;PCODE: $00000063 VOL: 0
 ;PCODE: $00000064 VOL: 0
+; 0000 0076             // v_buff = (float)velocity/1000;
+; 0000 0077             v_buff = 0.5;
 ;PCODE: $00000065 VOL: 0
 ;PCODE: $00000066 VOL: 0
+; 0000 0078             a_buff = (float)angularV/1000;
 ;PCODE: $00000067 VOL: 0
-; 0000 0070 
-; 0000 0071             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 ;PCODE: $00000068 VOL: 0
 ;PCODE: $00000069 VOL: 0
 ;PCODE: $0000006A VOL: 0
 ;PCODE: $0000006B VOL: 0
 ;PCODE: $0000006C VOL: 0
+; 0000 0079 
+; 0000 007A             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 ;PCODE: $0000006D VOL: 0
 ;PCODE: $0000006E VOL: 0
 ;PCODE: $0000006F VOL: 0
@@ -283,94 +295,94 @@
 ;PCODE: $00000073 VOL: 0
 ;PCODE: $00000074 VOL: 0
 ;PCODE: $00000075 VOL: 0
-; 0000 0072 
-; 0000 0073             oper_Disapath(velocity_R, velocity_L);
 ;PCODE: $00000076 VOL: 0
 ;PCODE: $00000077 VOL: 0
 ;PCODE: $00000078 VOL: 0
 ;PCODE: $00000079 VOL: 0
-; 0000 0074 
-; 0000 0075             TIMER1_TIME = 0;
 ;PCODE: $0000007A VOL: 0
+; 0000 007B 
+; 0000 007C             oper_Disapath(velocity_R, velocity_L);
 ;PCODE: $0000007B VOL: 0
-; 0000 0076             TIMER1_OVERFLOW = 0;
 ;PCODE: $0000007C VOL: 0
 ;PCODE: $0000007D VOL: 0
-; 0000 0077             TCNT1L = 0;
 ;PCODE: $0000007E VOL: 0
+; 0000 007D 
+; 0000 007E             TIMER1_TIME = 0;
 ;PCODE: $0000007F VOL: 0
-; 0000 0078 
-; 0000 0079             // rootine_test = 1;
-; 0000 007A             STOP_FLAG = 1;
 ;PCODE: $00000080 VOL: 0
+; 0000 007F             TIMER1_OVERFLOW = 0;
 ;PCODE: $00000081 VOL: 0
-; 0000 007B             CHECK_GETS = 0;
 ;PCODE: $00000082 VOL: 0
+; 0000 0080             TCNT1L = 0;
 ;PCODE: $00000083 VOL: 0
-; 0000 007C             UCSR1B |=(1<<RXEN1);
 ;PCODE: $00000084 VOL: 0
+; 0000 0081 
+; 0000 0082             // rootine_test = 1;
+; 0000 0083             STOP_FLAG = 1;
 ;PCODE: $00000085 VOL: 0
 ;PCODE: $00000086 VOL: 0
-; 0000 007D         }
-; 0000 007E 
-; 0000 007F         // if(rootine_test == 0)
-; 0000 0080         // {
-; 0000 0081         //     v_buff = 0.15;
-; 0000 0082         //     a_buff = 0;
-; 0000 0083         //     if(d_x<0.95)
-; 0000 0084         //     {
-; 0000 0085         //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
-; 0000 0086         //         oper_Disapath(velocity_R,velocity_L);
-; 0000 0087         //         STOP_FLAG = 1;
-; 0000 0088         //     }
-; 0000 0089         //     else{
-; 0000 008A         //         if(STOP_FLAG) a = TIMER0_TIME_print;
-; 0000 008B         //         if(TIMER0_TIME_print > a+2) rootine_test = 1;
-; 0000 008C         //         oper_Disapath(0,0);
-; 0000 008D         //         STOP_FLAG = 0;
-; 0000 008E         //     }
-; 0000 008F         // }
-; 0000 0090         // else if(rootine_test == 1)
-; 0000 0091         // {
-; 0000 0092         //     v_buff = 0;
-; 0000 0093         //     a_buff = -0.7;
-; 0000 0094         //     if(d_angular_circula<85)
-; 0000 0095         //     {
-; 0000 0096         //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
-; 0000 0097         //         oper_Disapath(velocity_R,velocity_L);
-; 0000 0098         //         STOP_FLAG = 1;
-; 0000 0099         //     }
-; 0000 009A         //     else{
-; 0000 009B         //         if(STOP_FLAG) a = TIMER0_TIME_print;
-; 0000 009C         //         if(TIMER0_TIME_print > a+2) rootine_test = 2;
-; 0000 009D         //         oper_Disapath(0,0);
-; 0000 009E         //         STOP_FLAG = 0;
-; 0000 009F         //     }
-; 0000 00A0         // }
-; 0000 00A1         // else if(rootine_test == 2)
-; 0000 00A2         // {
-; 0000 00A3         //     v_buff = 0.15;
-; 0000 00A4         //     a_buff = 0;
-; 0000 00A5         //     if(d_y<0.95)
-; 0000 00A6         //     {
-; 0000 00A7         //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
-; 0000 00A8         //         oper_Disapath(velocity_R,velocity_L);
-; 0000 00A9         //         STOP_FLAG = 1;
-; 0000 00AA         //     }
-; 0000 00AB         //     else{
-; 0000 00AC         //         if(STOP_FLAG) a = TIMER0_TIME_print;
-; 0000 00AD         //         if(TIMER0_TIME_print > a+2) rootine_test = 3;
-; 0000 00AE         //         oper_Disapath(0,0);
-; 0000 00AF         //         STOP_FLAG = 0;
-; 0000 00B0         //     }
-; 0000 00B1         // }
-; 0000 00B2 
-; 0000 00B3         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
+; 0000 0084             CHECK_GETS = 0;
 ;PCODE: $00000087 VOL: 0
 ;PCODE: $00000088 VOL: 0
+; 0000 0085             UCSR1B |=(1<<RXEN1);
 ;PCODE: $00000089 VOL: 0
 ;PCODE: $0000008A VOL: 0
 ;PCODE: $0000008B VOL: 0
+; 0000 0086         }
+; 0000 0087 
+; 0000 0088         // if(rootine_test == 0)
+; 0000 0089         // {
+; 0000 008A         //     v_buff = 0.15;
+; 0000 008B         //     a_buff = 0;
+; 0000 008C         //     if(d_x<0.95)
+; 0000 008D         //     {
+; 0000 008E         //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+; 0000 008F         //         oper_Disapath(velocity_R,velocity_L);
+; 0000 0090         //         STOP_FLAG = 1;
+; 0000 0091         //     }
+; 0000 0092         //     else{
+; 0000 0093         //         if(STOP_FLAG) a = TIMER0_TIME_print;
+; 0000 0094         //         if(TIMER0_TIME_print > a+2) rootine_test = 1;
+; 0000 0095         //         oper_Disapath(0,0);
+; 0000 0096         //         STOP_FLAG = 0;
+; 0000 0097         //     }
+; 0000 0098         // }
+; 0000 0099         // else if(rootine_test == 1)
+; 0000 009A         // {
+; 0000 009B         //     v_buff = 0;
+; 0000 009C         //     a_buff = -0.7;
+; 0000 009D         //     if(d_angular_circula<85)
+; 0000 009E         //     {
+; 0000 009F         //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+; 0000 00A0         //         oper_Disapath(velocity_R,velocity_L);
+; 0000 00A1         //         STOP_FLAG = 1;
+; 0000 00A2         //     }
+; 0000 00A3         //     else{
+; 0000 00A4         //         if(STOP_FLAG) a = TIMER0_TIME_print;
+; 0000 00A5         //         if(TIMER0_TIME_print > a+2) rootine_test = 2;
+; 0000 00A6         //         oper_Disapath(0,0);
+; 0000 00A7         //         STOP_FLAG = 0;
+; 0000 00A8         //     }
+; 0000 00A9         // }
+; 0000 00AA         // else if(rootine_test == 2)
+; 0000 00AB         // {
+; 0000 00AC         //     v_buff = 0.15;
+; 0000 00AD         //     a_buff = 0;
+; 0000 00AE         //     if(d_y<0.95)
+; 0000 00AF         //     {
+; 0000 00B0         //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
+; 0000 00B1         //         oper_Disapath(velocity_R,velocity_L);
+; 0000 00B2         //         STOP_FLAG = 1;
+; 0000 00B3         //     }
+; 0000 00B4         //     else{
+; 0000 00B5         //         if(STOP_FLAG) a = TIMER0_TIME_print;
+; 0000 00B6         //         if(TIMER0_TIME_print > a+2) rootine_test = 3;
+; 0000 00B7         //         oper_Disapath(0,0);
+; 0000 00B8         //         STOP_FLAG = 0;
+; 0000 00B9         //     }
+; 0000 00BA         // }
+; 0000 00BB 
+; 0000 00BC         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
 ;PCODE: $0000008C VOL: 0
 ;PCODE: $0000008D VOL: 0
 ;PCODE: $0000008E VOL: 0
@@ -378,39 +390,39 @@
 ;PCODE: $00000090 VOL: 0
 ;PCODE: $00000091 VOL: 0
 ;PCODE: $00000092 VOL: 0
-; 0000 00B4 
-; 0000 00B5         if(del_ms<TIMER1_TIME)
 ;PCODE: $00000093 VOL: 0
 ;PCODE: $00000094 VOL: 0
 ;PCODE: $00000095 VOL: 0
 ;PCODE: $00000096 VOL: 0
 ;PCODE: $00000097 VOL: 0
-; 0000 00B6         {
-; 0000 00B7             oper_Disapath(0,0);
+; 0000 00BD 
+; 0000 00BE         if(del_ms<TIMER1_TIME)
 ;PCODE: $00000098 VOL: 0
 ;PCODE: $00000099 VOL: 0
 ;PCODE: $0000009A VOL: 0
 ;PCODE: $0000009B VOL: 0
 ;PCODE: $0000009C VOL: 0
-; 0000 00B8             TIMER1_OVERFLOW = 0;
+; 0000 00BF         {
+; 0000 00C0             oper_Disapath(0,0);
 ;PCODE: $0000009D VOL: 0
 ;PCODE: $0000009E VOL: 0
-; 0000 00B9             v_buff = 0;
 ;PCODE: $0000009F VOL: 0
 ;PCODE: $000000A0 VOL: 0
-; 0000 00BA             a_buff = 0;
 ;PCODE: $000000A1 VOL: 0
+; 0000 00C1             TIMER1_OVERFLOW = 0;
 ;PCODE: $000000A2 VOL: 0
-; 0000 00BB             STOP_FLAG = 0;
 ;PCODE: $000000A3 VOL: 0
+; 0000 00C2             v_buff = 0;
 ;PCODE: $000000A4 VOL: 0
-; 0000 00BC         }
-; 0000 00BD         if(currentV_R==0 && currentV_L==0) TIMER0_TIME_print = 0;
 ;PCODE: $000000A5 VOL: 0
+; 0000 00C3             a_buff = 0;
 ;PCODE: $000000A6 VOL: 0
 ;PCODE: $000000A7 VOL: 0
+; 0000 00C4             STOP_FLAG = 0;
 ;PCODE: $000000A8 VOL: 0
 ;PCODE: $000000A9 VOL: 0
+; 0000 00C5         }
+; 0000 00C6         if(goal_currentV_R==0 && goal_currentV_L==0) TIMER0_TIME_print = 0;
 ;PCODE: $000000AA VOL: 0
 ;PCODE: $000000AB VOL: 0
 ;PCODE: $000000AC VOL: 0
@@ -419,151 +431,152 @@
 ;PCODE: $000000AF VOL: 0
 ;PCODE: $000000B0 VOL: 0
 ;PCODE: $000000B1 VOL: 0
-; 0000 00BE 
-; 0000 00BF         delay_ms(5);
 ;PCODE: $000000B2 VOL: 0
 ;PCODE: $000000B3 VOL: 0
 ;PCODE: $000000B4 VOL: 0
 ;PCODE: $000000B5 VOL: 0
-; 0000 00C0         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $000000B6 VOL: 0
+; 0000 00C7 
+; 0000 00C8         delay_ms(5);
 ;PCODE: $000000B7 VOL: 0
 ;PCODE: $000000B8 VOL: 0
 ;PCODE: $000000B9 VOL: 0
 ;PCODE: $000000BA VOL: 0
+; 0000 00C9         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $000000BB VOL: 0
 ;PCODE: $000000BC VOL: 0
-; 0000 00C1         delay_ms(5);
 ;PCODE: $000000BD VOL: 0
 ;PCODE: $000000BE VOL: 0
 ;PCODE: $000000BF VOL: 0
-; 0000 00C2         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
 ;PCODE: $000000C0 VOL: 0
 ;PCODE: $000000C1 VOL: 0
+; 0000 00CA         delay_ms(5);
 ;PCODE: $000000C2 VOL: 0
 ;PCODE: $000000C3 VOL: 0
 ;PCODE: $000000C4 VOL: 0
+; 0000 00CB         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
 ;PCODE: $000000C5 VOL: 0
 ;PCODE: $000000C6 VOL: 0
 ;PCODE: $000000C7 VOL: 0
-; 0000 00C3         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $000000C8 VOL: 0
 ;PCODE: $000000C9 VOL: 0
 ;PCODE: $000000CA VOL: 0
 ;PCODE: $000000CB VOL: 0
 ;PCODE: $000000CC VOL: 0
+; 0000 00CC         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $000000CD VOL: 0
 ;PCODE: $000000CE VOL: 0
-; 0000 00C4         delay_ms(5);
 ;PCODE: $000000CF VOL: 0
 ;PCODE: $000000D0 VOL: 0
 ;PCODE: $000000D1 VOL: 0
-; 0000 00C5         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
 ;PCODE: $000000D2 VOL: 0
 ;PCODE: $000000D3 VOL: 0
+; 0000 00CD         delay_ms(5);
 ;PCODE: $000000D4 VOL: 0
 ;PCODE: $000000D5 VOL: 0
 ;PCODE: $000000D6 VOL: 0
+; 0000 00CE         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
 ;PCODE: $000000D7 VOL: 0
 ;PCODE: $000000D8 VOL: 0
 ;PCODE: $000000D9 VOL: 0
 ;PCODE: $000000DA VOL: 0
-; 0000 00C6 
-; 0000 00C7         currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
 ;PCODE: $000000DB VOL: 0
 ;PCODE: $000000DC VOL: 0
 ;PCODE: $000000DD VOL: 0
 ;PCODE: $000000DE VOL: 0
 ;PCODE: $000000DF VOL: 0
+; 0000 00CF 
+; 0000 00D0         currentV_R = (float)(currentRPM_R/(60/(Pi*0.125)*Gearratio));
 ;PCODE: $000000E0 VOL: 0
-; 0000 00C8         currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
 ;PCODE: $000000E1 VOL: 0
 ;PCODE: $000000E2 VOL: 0
 ;PCODE: $000000E3 VOL: 0
 ;PCODE: $000000E4 VOL: 0
 ;PCODE: $000000E5 VOL: 0
+; 0000 00D1         currentV_L = (float)(currentRPM_L/(60/(Pi*0.125)*Gearratio));
 ;PCODE: $000000E6 VOL: 0
-; 0000 00C9         goal_currentV_R = (float)(goal_current_R/(152.788*Gearratio));
 ;PCODE: $000000E7 VOL: 0
 ;PCODE: $000000E8 VOL: 0
 ;PCODE: $000000E9 VOL: 0
 ;PCODE: $000000EA VOL: 0
 ;PCODE: $000000EB VOL: 0
+; 0000 00D2 
+; 0000 00D3         goal_currentV_R = (float)(goal_current_R/(60/(Pi*0.125)*Gearratio));
 ;PCODE: $000000EC VOL: 0
-; 0000 00CA         goal_currentV_L = (float)(-goal_current_L/(152.788*Gearratio));
 ;PCODE: $000000ED VOL: 0
 ;PCODE: $000000EE VOL: 0
 ;PCODE: $000000EF VOL: 0
 ;PCODE: $000000F0 VOL: 0
 ;PCODE: $000000F1 VOL: 0
+; 0000 00D4         goal_currentV_L = (float)(-goal_current_L/(60/(Pi*0.125)*Gearratio));
 ;PCODE: $000000F2 VOL: 0
 ;PCODE: $000000F3 VOL: 0
-; 0000 00CB 
-; 0000 00CC         d_velocity = (currentV_R + currentV_L)/2;
 ;PCODE: $000000F4 VOL: 0
 ;PCODE: $000000F5 VOL: 0
 ;PCODE: $000000F6 VOL: 0
 ;PCODE: $000000F7 VOL: 0
 ;PCODE: $000000F8 VOL: 0
+; 0000 00D5 
+; 0000 00D6         d_velocity = (currentV_R + currentV_L)/2;
 ;PCODE: $000000F9 VOL: 0
 ;PCODE: $000000FA VOL: 0
-; 0000 00CD         d_angularV = (currentV_R-currentV_L)/Length;
 ;PCODE: $000000FB VOL: 0
 ;PCODE: $000000FC VOL: 0
 ;PCODE: $000000FD VOL: 0
 ;PCODE: $000000FE VOL: 0
 ;PCODE: $000000FF VOL: 0
+; 0000 00D7         d_angularV = (currentV_R-currentV_L)/Length;
 ;PCODE: $00000100 VOL: 0
 ;PCODE: $00000101 VOL: 0
-; 0000 00CE         g_velocity = (goal_currentV_R+goal_currentV_L)/2;
 ;PCODE: $00000102 VOL: 0
 ;PCODE: $00000103 VOL: 0
 ;PCODE: $00000104 VOL: 0
 ;PCODE: $00000105 VOL: 0
 ;PCODE: $00000106 VOL: 0
+; 0000 00D8         g_velocity = (goal_currentV_R+goal_currentV_L)/2;
 ;PCODE: $00000107 VOL: 0
 ;PCODE: $00000108 VOL: 0
-; 0000 00CF         g_angularV = (goal_currentV_R-goal_currentV_L)/Length;
 ;PCODE: $00000109 VOL: 0
 ;PCODE: $0000010A VOL: 0
 ;PCODE: $0000010B VOL: 0
 ;PCODE: $0000010C VOL: 0
 ;PCODE: $0000010D VOL: 0
+; 0000 00D9         g_angularV = (goal_currentV_R-goal_currentV_L)/Length;
 ;PCODE: $0000010E VOL: 0
 ;PCODE: $0000010F VOL: 0
-; 0000 00D0 
-; 0000 00D1         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
 ;PCODE: $00000110 VOL: 0
 ;PCODE: $00000111 VOL: 0
 ;PCODE: $00000112 VOL: 0
 ;PCODE: $00000113 VOL: 0
 ;PCODE: $00000114 VOL: 0
+; 0000 00DA 
+; 0000 00DB         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
 ;PCODE: $00000115 VOL: 0
 ;PCODE: $00000116 VOL: 0
 ;PCODE: $00000117 VOL: 0
 ;PCODE: $00000118 VOL: 0
 ;PCODE: $00000119 VOL: 0
 ;PCODE: $0000011A VOL: 0
-; 0000 00D2         TIMER0_OVERFLOW = 0;
 ;PCODE: $0000011B VOL: 0
 ;PCODE: $0000011C VOL: 0
-; 0000 00D3         TCNT0 = 0;
 ;PCODE: $0000011D VOL: 0
 ;PCODE: $0000011E VOL: 0
-; 0000 00D4 
-; 0000 00D5         d_angular += control_time*d_angularV;
 ;PCODE: $0000011F VOL: 0
+; 0000 00DC         TIMER0_OVERFLOW = 0;
 ;PCODE: $00000120 VOL: 0
 ;PCODE: $00000121 VOL: 0
+; 0000 00DD         TCNT0 = 0;
 ;PCODE: $00000122 VOL: 0
 ;PCODE: $00000123 VOL: 0
+; 0000 00DE 
+; 0000 00DF         d_angular += control_time*d_angularV;
 ;PCODE: $00000124 VOL: 0
-; 0000 00D6         d_x += d_velocity*control_time*cos(d_angular);
 ;PCODE: $00000125 VOL: 0
 ;PCODE: $00000126 VOL: 0
 ;PCODE: $00000127 VOL: 0
 ;PCODE: $00000128 VOL: 0
 ;PCODE: $00000129 VOL: 0
+; 0000 00E0         d_x += d_velocity*control_time*cos(d_angular);
 ;PCODE: $0000012A VOL: 0
 ;PCODE: $0000012B VOL: 0
 ;PCODE: $0000012C VOL: 0
@@ -571,12 +584,12 @@
 ;PCODE: $0000012E VOL: 0
 ;PCODE: $0000012F VOL: 0
 ;PCODE: $00000130 VOL: 0
-; 0000 00D7         d_y += d_velocity*control_time*sin(d_angular);
 ;PCODE: $00000131 VOL: 0
 ;PCODE: $00000132 VOL: 0
 ;PCODE: $00000133 VOL: 0
 ;PCODE: $00000134 VOL: 0
 ;PCODE: $00000135 VOL: 0
+; 0000 00E1         d_y += d_velocity*control_time*sin(d_angular);
 ;PCODE: $00000136 VOL: 0
 ;PCODE: $00000137 VOL: 0
 ;PCODE: $00000138 VOL: 0
@@ -584,31 +597,26 @@
 ;PCODE: $0000013A VOL: 0
 ;PCODE: $0000013B VOL: 0
 ;PCODE: $0000013C VOL: 0
-; 0000 00D8         d_angular_circula = (int)(d_angular*Circular);
 ;PCODE: $0000013D VOL: 0
 ;PCODE: $0000013E VOL: 0
 ;PCODE: $0000013F VOL: 0
 ;PCODE: $00000140 VOL: 0
 ;PCODE: $00000141 VOL: 0
-; 0000 00D9 
-; 0000 00DA         // g_angular += control_time*g_angularV;
-; 0000 00DB         // g_x += g_velocity*control_time*cos(g_angular);
-; 0000 00DC         // g_y += g_velocity*control_time*sin(g_angular);
-; 0000 00DD         // g_angular_circula = (int)(g_angular*Circular);
-; 0000 00DE 
-; 0000 00DF         motorR_distance = (float)(MOTORR_HALL*0.125*Pi/180);
+; 0000 00E2         d_angular_circula = (int)(d_angular*Circular);
 ;PCODE: $00000142 VOL: 0
 ;PCODE: $00000143 VOL: 0
 ;PCODE: $00000144 VOL: 0
 ;PCODE: $00000145 VOL: 0
 ;PCODE: $00000146 VOL: 0
+; 0000 00E3 
+; 0000 00E4         g_angular += control_time*g_angularV;
 ;PCODE: $00000147 VOL: 0
 ;PCODE: $00000148 VOL: 0
 ;PCODE: $00000149 VOL: 0
 ;PCODE: $0000014A VOL: 0
 ;PCODE: $0000014B VOL: 0
-; 0000 00E0         motorL_distance = (float)(MOTORL_HALL*0.125*Pi/180);
 ;PCODE: $0000014C VOL: 0
+; 0000 00E5         g_x += g_velocity*control_time*cos(g_angular);
 ;PCODE: $0000014D VOL: 0
 ;PCODE: $0000014E VOL: 0
 ;PCODE: $0000014F VOL: 0
@@ -618,42 +626,43 @@
 ;PCODE: $00000153 VOL: 0
 ;PCODE: $00000154 VOL: 0
 ;PCODE: $00000155 VOL: 0
-; 0000 00E1         // MOTORR_HALL = 0;
-; 0000 00E2         // MOTORL_HALL = 0;
-; 0000 00E3 
-; 0000 00E4         hall_angular += (float)((motorR_distance-motorL_distance)/Length);
 ;PCODE: $00000156 VOL: 0
 ;PCODE: $00000157 VOL: 0
 ;PCODE: $00000158 VOL: 0
+; 0000 00E6         g_y += g_velocity*control_time*sin(g_angular);
 ;PCODE: $00000159 VOL: 0
 ;PCODE: $0000015A VOL: 0
 ;PCODE: $0000015B VOL: 0
 ;PCODE: $0000015C VOL: 0
 ;PCODE: $0000015D VOL: 0
 ;PCODE: $0000015E VOL: 0
-; 0000 00E5         hall_x += (float)((motorR_distance+motorL_distance)/2)*cos(hall_angular);
 ;PCODE: $0000015F VOL: 0
 ;PCODE: $00000160 VOL: 0
 ;PCODE: $00000161 VOL: 0
 ;PCODE: $00000162 VOL: 0
 ;PCODE: $00000163 VOL: 0
 ;PCODE: $00000164 VOL: 0
+; 0000 00E7         g_angular_circula = (int)(g_angular*Circular);
 ;PCODE: $00000165 VOL: 0
 ;PCODE: $00000166 VOL: 0
 ;PCODE: $00000167 VOL: 0
 ;PCODE: $00000168 VOL: 0
 ;PCODE: $00000169 VOL: 0
+; 0000 00E8 
+; 0000 00E9         // motorR_distance = (float)(MOTORR_HALL*0.1325*Pi/160);
+; 0000 00EA         // motorL_distance = (float)(MOTORL_HALL*0.1325*Pi/160);
+; 0000 00EB         motorR_distance = (float)(MOTORR_HALL*0.125*Pi/160);
 ;PCODE: $0000016A VOL: 0
 ;PCODE: $0000016B VOL: 0
 ;PCODE: $0000016C VOL: 0
 ;PCODE: $0000016D VOL: 0
-; 0000 00E6         hall_y += (float)((motorR_distance+motorL_distance)/2)*sin(hall_angular);
 ;PCODE: $0000016E VOL: 0
 ;PCODE: $0000016F VOL: 0
 ;PCODE: $00000170 VOL: 0
 ;PCODE: $00000171 VOL: 0
 ;PCODE: $00000172 VOL: 0
 ;PCODE: $00000173 VOL: 0
+; 0000 00EC         motorL_distance = (float)(MOTORL_HALL*0.125*Pi/160);
 ;PCODE: $00000174 VOL: 0
 ;PCODE: $00000175 VOL: 0
 ;PCODE: $00000176 VOL: 0
@@ -663,36 +672,31 @@
 ;PCODE: $0000017A VOL: 0
 ;PCODE: $0000017B VOL: 0
 ;PCODE: $0000017C VOL: 0
-; 0000 00E7         hall_angular_circula = (int)(hall_angular*Circular);
 ;PCODE: $0000017D VOL: 0
+; 0000 00ED 
+; 0000 00EE         TIMER0_TIME += control_time;
 ;PCODE: $0000017E VOL: 0
 ;PCODE: $0000017F VOL: 0
 ;PCODE: $00000180 VOL: 0
 ;PCODE: $00000181 VOL: 0
-; 0000 00E8 
-; 0000 00E9 
-; 0000 00EA         TIMER0_TIME += control_time;
+; 0000 00EF         if(TIMER0_TIME>0.1){
 ;PCODE: $00000182 VOL: 0
 ;PCODE: $00000183 VOL: 0
 ;PCODE: $00000184 VOL: 0
 ;PCODE: $00000185 VOL: 0
-; 0000 00EB         if(TIMER0_TIME>0.01){
+; 0000 00F0             TIMER0_TIME_print += TIMER0_TIME;
 ;PCODE: $00000186 VOL: 0
 ;PCODE: $00000187 VOL: 0
 ;PCODE: $00000188 VOL: 0
 ;PCODE: $00000189 VOL: 0
-; 0000 00EC             TIMER0_TIME_print += TIMER0_TIME;
+; 0000 00F1             MOTORR_HALL = 0;
 ;PCODE: $0000018A VOL: 0
 ;PCODE: $0000018B VOL: 0
+; 0000 00F2             MOTORL_HALL = 0;
 ;PCODE: $0000018C VOL: 0
 ;PCODE: $0000018D VOL: 0
-; 0000 00ED             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
-; 0000 00EE             // sprintf(BUFF, "%f, %f\n", currentV_L*control_time, motorL_distance);
-; 0000 00EF             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-; 0000 00F0             // sprintf(BUFF, "%.3f, %.3f, %4d, %.3f, %.3f\n", d_x, d_y, d_angular_circula, TIMER0_TIME_print, a);
-; 0000 00F1             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %4d, %4d\n", d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula);
-; 0000 00F2             // sprintf(BUFF, "%.3f, %.3f,\n", d_x, (motorR_distance+motorL_distance)/2);
-; 0000 00F3             sprintf(BUFF, "%4d, %4d\n", MOTORR_HALL, MOTORL_HALL);
+; 0000 00F3 
+; 0000 00F4             hall_velocity = (float)((motorR_distance+motorL_distance)/(2*TIMER0_TIME));
 ;PCODE: $0000018E VOL: 0
 ;PCODE: $0000018F VOL: 0
 ;PCODE: $00000190 VOL: 0
@@ -703,28 +707,105 @@
 ;PCODE: $00000195 VOL: 0
 ;PCODE: $00000196 VOL: 0
 ;PCODE: $00000197 VOL: 0
+; 0000 00F5             hall_angular += (float)((motorR_distance-motorL_distance)/Length);
 ;PCODE: $00000198 VOL: 0
 ;PCODE: $00000199 VOL: 0
 ;PCODE: $0000019A VOL: 0
-; 0000 00F4             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", d_velocity, g_velocity, v_buff, TIMER0_TIME_print);
-; 0000 00F5             // sprintf(BUFF, "%d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L,
-; 0000 00F6             //                                                   currentV_R, currentV_L, goal_currentV_R, goal_currentV_L,
-; 0000 00F7             //                                                   d_velocity, g_velocity, d_x, g_x);
-; 0000 00F8             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
-; 0000 00F9             puts_USART1(BUFF);
 ;PCODE: $0000019B VOL: 0
 ;PCODE: $0000019C VOL: 0
 ;PCODE: $0000019D VOL: 0
-; 0000 00FA              TIMER0_TIME = 0;
 ;PCODE: $0000019E VOL: 0
 ;PCODE: $0000019F VOL: 0
-; 0000 00FB         }
-; 0000 00FC     }
 ;PCODE: $000001A0 VOL: 0
+; 0000 00F6             hall_x += (float)((motorR_distance+motorL_distance)/2)*cos(hall_angular);
 ;PCODE: $000001A1 VOL: 0
 ;PCODE: $000001A2 VOL: 0
-; 0000 00FD }
 ;PCODE: $000001A3 VOL: 0
 ;PCODE: $000001A4 VOL: 0
 ;PCODE: $000001A5 VOL: 0
 ;PCODE: $000001A6 VOL: 0
+;PCODE: $000001A7 VOL: 0
+;PCODE: $000001A8 VOL: 0
+;PCODE: $000001A9 VOL: 0
+;PCODE: $000001AA VOL: 0
+;PCODE: $000001AB VOL: 0
+;PCODE: $000001AC VOL: 0
+;PCODE: $000001AD VOL: 0
+;PCODE: $000001AE VOL: 0
+;PCODE: $000001AF VOL: 0
+; 0000 00F7             hall_y += (float)((motorR_distance+motorL_distance)/2)*sin(hall_angular);
+;PCODE: $000001B0 VOL: 0
+;PCODE: $000001B1 VOL: 0
+;PCODE: $000001B2 VOL: 0
+;PCODE: $000001B3 VOL: 0
+;PCODE: $000001B4 VOL: 0
+;PCODE: $000001B5 VOL: 0
+;PCODE: $000001B6 VOL: 0
+;PCODE: $000001B7 VOL: 0
+;PCODE: $000001B8 VOL: 0
+;PCODE: $000001B9 VOL: 0
+;PCODE: $000001BA VOL: 0
+;PCODE: $000001BB VOL: 0
+;PCODE: $000001BC VOL: 0
+;PCODE: $000001BD VOL: 0
+;PCODE: $000001BE VOL: 0
+; 0000 00F8             hall_angular_circula = (int)(hall_angular*Circular);
+;PCODE: $000001BF VOL: 0
+;PCODE: $000001C0 VOL: 0
+;PCODE: $000001C1 VOL: 0
+;PCODE: $000001C2 VOL: 0
+;PCODE: $000001C3 VOL: 0
+; 0000 00F9             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
+; 0000 00FA             // sprintf(BUFF, "%f, %f\n", currentV_L*control_time, motorL_distance);
+; 0000 00FB             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
+; 0000 00FC             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d, %d\n", TIMER0_TIME_print, d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula);
+; 0000 00FD             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %4d, %4d, %.3f\n", d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula, TIMER0_TIME_print);
+; 0000 00FE             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f \n",TIMER0_TIME_print, g_velocity, d_velocity, hall_velocity);
+; 0000 00FF             sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d\n",TIMER0_TIME_print,g_velocity, hall_velocity, g_x, hall_x, del_ms);
+;PCODE: $000001C4 VOL: 0
+;PCODE: $000001C5 VOL: 0
+;PCODE: $000001C6 VOL: 0
+;PCODE: $000001C7 VOL: 0
+;PCODE: $000001C8 VOL: 0
+;PCODE: $000001C9 VOL: 0
+;PCODE: $000001CA VOL: 0
+;PCODE: $000001CB VOL: 0
+;PCODE: $000001CC VOL: 0
+;PCODE: $000001CD VOL: 0
+;PCODE: $000001CE VOL: 0
+;PCODE: $000001CF VOL: 0
+;PCODE: $000001D0 VOL: 0
+;PCODE: $000001D1 VOL: 0
+;PCODE: $000001D2 VOL: 0
+;PCODE: $000001D3 VOL: 0
+;PCODE: $000001D4 VOL: 0
+;PCODE: $000001D5 VOL: 0
+;PCODE: $000001D6 VOL: 0
+;PCODE: $000001D7 VOL: 0
+;PCODE: $000001D8 VOL: 0
+;PCODE: $000001D9 VOL: 0
+; 0000 0100 
+; 0000 0101             // sprintf(BUFF, "%4d, %4d\n", MOTORR_HALL, MOTORL_HALL);
+; 0000 0102             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", d_velocity, g_velocity, v_buff, TIMER0_TIME_print);
+; 0000 0103             // sprintf(BUFF, "%d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L,
+; 0000 0104             //                                                   currentV_R, currentV_L, goal_currentV_R, goal_currentV_L,
+; 0000 0105             //                                                   d_velocity, g_velocity, d_x, g_x, TIMER0_TIME_print);
+; 0000 0106             // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L);
+; 0000 0107             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -_buff);
+; 0000 0108             puts_USART1(BUFF);
+;PCODE: $000001DA VOL: 0
+;PCODE: $000001DB VOL: 0
+;PCODE: $000001DC VOL: 0
+; 0000 0109             TIMER0_TIME = 0;
+;PCODE: $000001DD VOL: 0
+;PCODE: $000001DE VOL: 0
+; 0000 010A         }
+; 0000 010B     }
+;PCODE: $000001DF VOL: 0
+;PCODE: $000001E0 VOL: 0
+;PCODE: $000001E1 VOL: 0
+; 0000 010C }
+;PCODE: $000001E2 VOL: 0
+;PCODE: $000001E3 VOL: 0
+;PCODE: $000001E4 VOL: 0
+;PCODE: $000001E5 VOL: 0

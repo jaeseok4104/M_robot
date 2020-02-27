@@ -188,8 +188,8 @@ void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
     VelocityR = *_velocity+(*_angularV*Length)/2;
     VelocityL = *_velocity-(*_angularV*Length)/2;
 
-    *R_RPM = (int)(152.788*VelocityR*Gearratio);
-    *L_RPM = (int)(152.788*VelocityL*Gearratio);
+    *R_RPM = (int)(VelocityR*(60/(Pi*0.125)*Gearratio));
+    *L_RPM = (int)(VelocityL*(60/(Pi*0.125)*Gearratio));
 
     if( ((*R_RPM<300)&&(*R_RPM>-300))&&((*L_RPM<300)&&(*L_RPM>-300))){
         *R_RPM = 0;

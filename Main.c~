@@ -7,8 +7,6 @@
 #include "RTU_USART.h"
 #include "ext_int.h"
 
-#define Pi 3.141592
-
 unsigned char TIMER2_OVERFLOW = 0;
 unsigned char PACKET_BUFF[100] = {0,};
 unsigned char PACKET_BUFF_IDX = 0;
@@ -71,10 +69,11 @@ void main(void)
     float hall_y = 0;
     float hall_angular = 0;
     int hall_angular_circula = 0;
+    float hall_velocity = 0;
 
     float motorR_distance = 0;
     float motorL_distance = 0;
-    float a =0;
+    float a = 0;
     
     unsigned char BUFF[500] = {0,};
 
@@ -108,6 +107,7 @@ void main(void)
             }
             
             v_buff = (float)velocity/1000;
+            // v_buff = 0.5;
             a_buff = (float)angularV/1000;
             
             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
@@ -186,7 +186,7 @@ void main(void)
             a_buff = 0;
             STOP_FLAG = 0;
         }
-        if(currentV_R==0 && currentV_L==0) TIMER0_TIME_print = 0;
+        if(goal_currentV_R==0 && goal_currentV_L==0) TIMER0_TIME_print = 0;
 
         delay_ms(5);
         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
@@ -196,10 +196,11 @@ void main(void)
         delay_ms(5);
         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
 
-        currentV_R = (float)(currentRPM_R/(152.788*Gearratio));
-        currentV_L = (float)(currentRPM_L/(152.788*Gearratio));
-        goal_currentV_R = (float)(goal_current_R/(152.788*Gearratio));
-        goal_currentV_L = (float)(-goal_current_L/(152.788*Gearratio));
+        currentV_R = (float)(currentRPM_R/(60/(Pi*0.125*Gearratio));
+        currentV_L = (float)(currentRPM_L/(60/(Pi*0.125)*Gearratio));
+
+        goal_currentV_R = (float)(goal_current_R/(60/(Pi*0.139)*Gearratio));
+        goal_currentV_L = (float)(-goal_current_L/(60/(Pi*0.139)*Gearratio));
 
         d_velocity = (currentV_R + currentV_L)/2;
         d_angularV = (currentV_R-currentV_L)/Length;
@@ -215,38 +216,53 @@ void main(void)
         d_y += d_velocity*control_time*sin(d_angular);
         d_angular_circula = (int)(d_angular*Circular);
 
-        // g_angular += control_time*g_angularV;
-        // g_x += g_velocity*control_time*cos(g_angular);
-        // g_y += g_velocity*control_time*sin(g_angular);
-        // g_angular_circula = (int)(g_angular*Circular);
+        g_angular += control_time*g_angularV;
+        g_x += g_velocity*control_time*cos(g_angular);
+        g_y += g_velocity*control_time*sin(g_angular);
+        g_angular_circula = (int)(g_angular*Circular);
         
-        motorR_distance = (float)(MOTORR_HALL*0.125*Pi/160);
-        motorL_distance = (float)(MOTORL_HALL*0.125*Pi/160);
+        // motorR_distance = (float)(MOTORR_HALL*0.1325*Pi/160);
+        // motorL_distance = (float)(MOTORL_HALL*0.1325*Pi/160);
+        motorR_distance = (float)(MOTORR_HALL*0.135*Pi/160);
+        motorL_distance = (float)(MOTORL_HALL*0.135*Pi/160);
+        
 
-        hall_angular += (float)((motorR_distance-motorL_distance)/Length);
-        hall_x += (float)(motorR_distance+motorL_distance)/2*cos(hall_angular);
-        hall_y += (float)(motorR_distance+motorL_distance)/2*sin(hall_angular);
-        hall_angular_circula = (int)(hall_angular*Circular);
-
-
+        // MOTORR_HALL = 0;
+        // MOTORL_HALL = 0;
+        // hall_velocity = (float)((motorR_distance+motorL_distance)/(2*TIMER0_TIME));
+        // hall_angular += (float)((motorR_distance-motorL_distance)/Length);
+        // hall_x += (float)((motorR_distance+motorL_distance)/2)*cos(hall_angular);
+        // hall_y += (float)((motorR_distance+motorL_distance)/2)*sin(hall_angular);
+        // hall_angular_circula = (int)(hall_angular*Circular);
+        
         TIMER0_TIME += control_time;
-        if(TIMER0_TIME>0.01){
+        if(TIMER0_TIME>0.1){
             TIMER0_TIME_print += TIMER0_TIME;
+            hall_velocity = (float)((motorR_distance+motorL_distance)/(2*TIMER0_TIME));
+            hall_angular += (float)((motorR_distance-motorL_distance)/Length);
+            hall_x += (float)((motorR_distance+motorL_distance)/2)*cos(hall_angular);
+            hall_y += (float)((motorR_distance+motorL_distance)/2)*sin(hall_angular);
+            hall_angular_circula = (int)(hall_angular*Circular);
+
             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
-            // sprintf(BUFF, "%f, %f\n", d_x, d_y,currentRPM_R, current);
+            // sprintf(BUFF, "%f, %f\n", currentV_L*control_time, motorL_distance);
             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-            // sprintf(BUFF, "%.3f, %.3f, %4d, %.3f, %.3f\n", d_x, d_y, d_angular_circula, TIMER0_TIME_print, a);
-            sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %4d, %4d\n", d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula);
-            // sprintf(BUFF, "%d, %d,\n", MOTORR_HALL, MOTORL_HALL);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d, %d\n", TIMER0_TIME_print, d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %4d, %4d, %.3f\n", d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula, TIMER0_TIME_print);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f ,%.3f\n",TIMER0_TIME_print, g_velocity, d_velocity, hall_velocity, hall_x);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f\n",TIMER0_TIME_print, g_x, hall_x);
+
+            // sprintf(BUFF, "%4d, %4d\n", MOTORR_HALL, MOTORL_HALL);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", d_velocity, g_velocity, v_buff, TIMER0_TIME_print);
-            // sprintf(BUFF, "%d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L, 
+            // sprintf(BUFF, "%d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L, 
             //                                                   currentV_R, currentV_L, goal_currentV_R, goal_currentV_L,
-            //                                                   d_velocity, g_velocity, d_x, g_x);
-            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -v_buff);
+            //                                                   d_velocity, g_velocity, d_x, g_x, TIMER0_TIME_print);
+            sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -_buff);
             puts_USART1(BUFF);
-             TIMER0_TIME = 0;
+            TIMER0_TIME = 0;
+            MOTORR_HALL = 0;
+            MOTORL_HALL = 0;
         }
-        MOTORR_HALL = 0;
-        MOTORL_HALL = 0;
     }
 }
