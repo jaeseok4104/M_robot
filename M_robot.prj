@@ -61,7 +61,7 @@ MemoryModel=1
 OptimizeSize=1
 OptimizationLevel=2
 PrintfFeatures=4
-ScanfFeatures=0
+ScanfFeatures=1
 DataStackSize=1024
 PgmMemSize=131072
 RAMStart=256
@@ -147,7 +147,7 @@ WatchAVR8LAutoVariables=0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-Build=499
+Build=517
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -296,10 +296,10 @@ Fuse45=0
 Fuse46=0
 Fuse47=0
 Fuse48=0
-CheckSignature=1
+CheckSignature=0
 CheckErasure=0
 PreserveEEPROM=0
-VerifyProgramming=1
+VerifyProgramming=0
 <<<<<<< HEAD
 ProgrammingCounter=324
 =======
@@ -327,9 +327,9 @@ F8=PID_controller.c
 [Bookmarks1]
 <<<<<<< HEAD
 <<<<<<< HEAD
-TimeStamp=1347718905
-Row=0
-Column=0
+TimeStamp=1348170315
+Row=103
+Column=49
 =======
 <<<<<<< HEAD
 TimeStamp=1347519605
@@ -342,7 +342,7 @@ Row=0
 Column=0
 >>>>>>> test-testing
 ScrollPosX=0
-ScrollPosY=0
+ScrollPosY=93
 <<<<<<< HEAD
 =======
 =======
@@ -432,11 +432,11 @@ BK7=-1
 BK8=-1
 BK9=-1
 [Bookmarks5]
-TimeStamp=1347655221
-Row=15
-Column=47
+TimeStamp=1348106992
+Row=0
+Column=0
 ScrollPosX=0
-ScrollPosY=201
+ScrollPosY=0
 BK0=-1
 BK1=-1
 BK2=-1
@@ -499,9 +499,9 @@ BK8=-1
 BK9=-1
 [FoldedCode1]
 Blocks=0
-[FoldedCode4]
-Blocks=0
 [FoldedCode5]
+Blocks=0
+[FoldedCode4]
 Blocks=0
 [FoldedCode7]
 Blocks=0

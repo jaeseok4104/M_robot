@@ -9,6 +9,9 @@
 #define START 1
 #define STOP 2
 
+#define MOTOR_DRIVE_CEL_TIME 0.75
+#define MOTOR_CONT_MAX_SPEED 0.5
+
 #define Length 0.279
 #define Diameter 0.12
 #define Gearratio 20

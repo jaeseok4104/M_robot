@@ -1,7 +1,7 @@
-main DSTACK_USAGE:634 DSTACK_LEVEL:634 FILE:"Main.c" LINE:25
-sprintf DSTACK_USAGE:14 DSTACK_LEVEL:648 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1410
-_print DSTACK_USAGE:94 DSTACK_LEVEL:742 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1162
-_ftoe DSTACK_USAGE:16 DSTACK_LEVEL:758 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1098
-floor DSTACK_USAGE:4 DSTACK_LEVEL:762 FILE:"C:\cvavreval\lib\math.lib" LINE:659
-ftrunc DSTACK_USAGE:4 DSTACK_LEVEL:766 FILE:"C:\cvavreval\lib\math.lib" LINE:544
-hall_sensor_detection1 DSTACK_USAGE:7 DSTACK_LEVEL:773 FILE:"ext_int.c" LINE:14
+main DSTACK_USAGE:638 DSTACK_LEVEL:638 FILE:"Main.c" LINE:25
+sprintf DSTACK_USAGE:14 DSTACK_LEVEL:652 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1410
+_print DSTACK_USAGE:94 DSTACK_LEVEL:746 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1162
+_ftoe DSTACK_USAGE:16 DSTACK_LEVEL:762 FILE:"C:\cvavreval\lib\stdio.lib" LINE:1098
+floor DSTACK_USAGE:4 DSTACK_LEVEL:766 FILE:"C:\cvavreval\lib\math.lib" LINE:659
+ftrunc DSTACK_USAGE:4 DSTACK_LEVEL:770 FILE:"C:\cvavreval\lib\math.lib" LINE:544
+hall_sensor_detection1 DSTACK_USAGE:7 DSTACK_LEVEL:777 FILE:"ext_int.c" LINE:14

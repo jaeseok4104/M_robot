@@ -5,7 +5,7 @@
 #define TRUE 0
 #define FALSE 1
 
-extern unsigned int TIMER1_OVERFLOW;
+extern long int TIMER1_OVERFLOW;
 void timer2_init();
 void timer1_init();
 void timer0_init();

@@ -17,7 +17,7 @@ unsigned char VELOCITY_BUFF[20] = {0,};
 unsigned char VELOCITY_BUFF_IDX = 0;
 unsigned char CHECK_GETS = 0;
 
-unsigned int TIMER1_OVERFLOW = 0;
+long int TIMER1_OVERFLOW = 0;
 
 long int MOTORR_HALL = 0;
 long int MOTORL_HALL = 0;
@@ -33,7 +33,8 @@ void main(void)
     int velocity_L = 0;
     int del_ms = 0;
     float del_s = 0;
-    int diameter = 0;
+    float diameter = 0;
+    int d_diameter = 0;
     
     int currentRPM_R = 0;
     int currentRPM_L = 0;
@@ -101,24 +102,26 @@ void main(void)
         {                      
             UCSR1B &= ~(1<<RXEN1);
             // sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
-            sscanf(VELOCITY_BUFF,"<%d>", &diameter);
-            // if(!del_ms){
-            //     d_x = 0;
-            //     d_y = 0;
-            //     d_angular = 0;
-            // }
-            if((float)(0.5*0.75)<diameter)
-            {
-                del_s = (float)((diameter + (0.75*0.5))/0.5);
-                del_s -= 0.75;
+            sscanf(VELOCITY_BUFF,"<%d>", &d_diameter);
+            diameter = (float)(((float)d_diameter/100)-0.06);
+            if(!del_ms){
+                d_x = 0;
+                d_y = 0;
+                d_angular = 0;
             }
-            else del_s = (float)(((0.75*0.5)+diameter)/0.5);
-
+            if((float)(MOTOR_CONT_MAX_SPEED*MOTOR_DRIVE_CEL_TIME)<diameter)
+            {
+                del_s = (float)((diameter + (MOTOR_DRIVE_CEL_TIME*MOTOR_CONT_MAX_SPEED))/MOTOR_CONT_MAX_SPEED);
+                del_s -= MOTOR_DRIVE_CEL_TIME;
+            }
+            else del_s = (float)(((MOTOR_DRIVE_CEL_TIME*MOTOR_CONT_MAX_SPEED)+diameter)/MOTOR_CONT_MAX_SPEED);
             del_ms = (int)(del_s*1000);
+            v_buff = MOTOR_CONT_MAX_SPEED;
+
             // v_buff = (float)velocity/1000;
-            v_buff = 0.5;
             a_buff = (float)angularV/1000;
             
+            TIMER0_TIME_print = 0;
             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 
             oper_Disapath(velocity_R, velocity_L);
@@ -195,7 +198,7 @@ void main(void)
             a_buff = 0;
             STOP_FLAG = 0;
         }
-        if(goal_currentV_R==0 && goal_currentV_L==0) TIMER0_TIME_print = 0;
+        // if(goal_currentV_R==0 && goal_currentV_L==0) TIMER0_TIME_print = 0;
 
         delay_ms(5);
         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
@@ -252,9 +255,10 @@ void main(void)
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d, %d\n", TIMER0_TIME_print, d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %4d, %4d, %.3f\n", d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula, TIMER0_TIME_print);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f \n",TIMER0_TIME_print, g_velocity, d_velocity, hall_velocity);
-            sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d\n",TIMER0_TIME_print,g_velocity, hall_velocity, g_x, hall_x, del_ms);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d\n",TIMER0_TIME_print,g_velocity, hall_velocity, g_x, hall_x, del_ms);
+            // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n",TIMER0_TIME_print,g_velocity, d_velocity, hall_velocity,);
 
-            // sprintf(BUFF, "%4d, %4d\n", MOTORR_HALL, MOTORL_HALL);
+            sprintf(BUFF, "%.3f, %.3f, %.3f\n", TIMER0_TIME_print, hall_x, diameter);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", d_velocity, g_velocity, v_buff, TIMER0_TIME_print);
             // sprintf(BUFF, "%d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L, 
             //                                                   currentV_R, currentV_L, goal_currentV_R, goal_currentV_L,
