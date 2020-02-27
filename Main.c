@@ -110,7 +110,7 @@ void main(void)
             }
 
             if(d_diameter>0){
-                diameter = (float)(((float)d_diameter/100)-0.06);
+                diameter = (float)(((float)d_diameter/100)-0.05);
                 if((float)(MOTOR_CONT_MAX_SPEED*MOTOR_DRIVE_CEL_TIME)<diameter)
                 {
                     del_s = (float)((diameter + (MOTOR_DRIVE_CEL_TIME*MOTOR_CONT_MAX_SPEED))/MOTOR_CONT_MAX_SPEED);
@@ -124,7 +124,7 @@ void main(void)
                 a_buff = (float)angularV/1000;
             }
             else{
-                diameter = (float)(((float)d_diameter/100)+0.06);
+                diameter = (float)(((float)d_diameter/100)+0.05);
                 diameter = -diameter;
                 if((float)(MOTOR_CONT_MAX_SPEED*MOTOR_DRIVE_CEL_TIME)<diameter)
                 {
@@ -153,58 +153,6 @@ void main(void)
             CHECK_GETS = 0;
             UCSR1B |=(1<<RXEN1);
         }
-
-        // if(rootine_test == 0)
-        // {
-        //     v_buff = 0.15;
-        //     a_buff = 0;
-        //     if(d_x<0.95)
-        //     {
-        //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
-        //         oper_Disapath(velocity_R,velocity_L);
-        //         STOP_FLAG = 1;
-        //     }
-        //     else{
-        //         if(STOP_FLAG) a = TIMER0_TIME_print;
-        //         if(TIMER0_TIME_print > a+2) rootine_test = 1;
-        //         oper_Disapath(0,0);
-        //         STOP_FLAG = 0;
-        //     }
-        // }
-        // else if(rootine_test == 1)
-        // {
-        //     v_buff = 0;
-        //     a_buff = -0.7;
-        //     if(d_angular_circula<85)
-        //     {
-        //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
-        //         oper_Disapath(velocity_R,velocity_L);
-        //         STOP_FLAG = 1;
-        //     }
-        //     else{
-        //         if(STOP_FLAG) a = TIMER0_TIME_print;
-        //         if(TIMER0_TIME_print > a+2) rootine_test = 2;
-        //         oper_Disapath(0,0);
-        //         STOP_FLAG = 0;
-        //     }
-        // }
-        // else if(rootine_test == 2)
-        // {      
-        //     v_buff = 0.15;
-        //     a_buff = 0;
-        //     if(d_y<0.95)
-        //     {
-        //         Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
-        //         oper_Disapath(velocity_R,velocity_L);
-        //         STOP_FLAG = 1;
-        //     }
-        //     else{
-        //         if(STOP_FLAG) a = TIMER0_TIME_print;
-        //         if(TIMER0_TIME_print > a+2) rootine_test = 3;
-        //         oper_Disapath(0,0);
-        //         STOP_FLAG = 0;
-        //     }
-        // }
 
         TIMER1_TIME = (float)(TIMER1_OVERFLOW*255 +(int)TCNT1L)*0.0694444;
 
@@ -253,8 +201,8 @@ void main(void)
         
         // motorR_distance = (float)(MOTORR_HALL*0.1325*Pi/160);
         // motorL_distance = (float)(MOTORL_HALL*0.1325*Pi/160);
-        motorR_distance = (float)(MOTORR_HALL*0.125*Pi/160);
-        motorL_distance = (float)(MOTORL_HALL*0.125*Pi/160);
+        motorR_distance = (float)(MOTORR_HALL*0.4/160);
+        motorL_distance = (float)(MOTORL_HALL*0.4/160);
         
         TIMER0_TIME += control_time;
         if(TIMER0_TIME>0.01){
@@ -275,8 +223,9 @@ void main(void)
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f \n",TIMER0_TIME_print, g_velocity, d_velocity, hall_velocity);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d\n",TIMER0_TIME_print,g_velocity, hall_velocity, g_x, hall_x, del_ms);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n",TIMER0_TIME_print,g_velocity, d_velocity, hall_velocity,);
+            // sprintf(BUFF, "%.3f, %d, %d\n", TIMER0_TIME_print, MOTORR_HALL, MOTORL_HALL);
+            // sprintf(BUFF, "%.3f, %.3f\n", TIMER0_TIME_print, hall_x);
 
-            sprintf(BUFF, "%.3f, %.3f, %.3f\n", TIMER0_TIME_print, hall_x, diameter);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", d_velocity, g_velocity, v_buff, TIMER0_TIME_print);
             // sprintf(BUFF, "%d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L, 
             //                                                   currentV_R, currentV_L, goal_currentV_R, goal_currentV_L,

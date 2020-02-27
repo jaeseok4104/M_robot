@@ -188,8 +188,8 @@ void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
     VelocityR = *_velocity+(*_angularV*Length)/2;
     VelocityL = *_velocity-(*_angularV*Length)/2;
 
-    *R_RPM = (int)(VelocityR*(60/(Pi*0.125)*Gearratio));
-    *L_RPM = (int)(VelocityL*(60/(Pi*0.125)*Gearratio));
+    *R_RPM = (int)(VelocityR*(60/(0.4)*Gearratio));
+    *L_RPM = (int)(VelocityL*(60/(0.4)*Gearratio));
 
     if( ((*R_RPM<300)&&(*R_RPM>-300))&&((*L_RPM<300)&&(*L_RPM>-300))){
         *R_RPM = 0;
@@ -200,16 +200,16 @@ void Make_MSPEED(float* _velocity, float* _angularV, int* R_RPM, int* L_RPM)
 void oper_Disapath(int velocity_R, int velocity_L)
 {
     RTU_WriteOperate0(R,(unsigned int)121,(int)(velocity_R));
-    delay_ms(5);
+    delay_ms(1);
 
     RTU_WriteOperate0(L,(unsigned int)121,(int)-(velocity_L));
-    delay_ms(5);
+    delay_ms(1);
     
     RTU_WriteOperate0(R,(unsigned int)120,(int)(START));
-    delay_ms(5);
+    delay_ms(1);
 
     RTU_WriteOperate0(L,(unsigned int)120,(int)(START));
-    delay_ms(5);
+    delay_ms(1);
 }
 
 int get_RPM(char *str,char IDX, int* goal)
