@@ -523,12 +523,30 @@
 ; 0000 00C8         }
 ; 0000 00C9         // if(goal_currentV_R==0 && goal_currentV_L==0) TIMER0_TIME_print = 0;
 ; 0000 00CA 
-; 0000 00CB         delay_ms(5);
+; 0000 00CB         // delay_ms(5);
+; 0000 00CC         // RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
+; 0000 00CD         // delay_ms(5);
+; 0000 00CE         // currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
+; 0000 00CF         // RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
+; 0000 00D0         // delay_ms(5);
+; 0000 00D1         // currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
+; 0000 00D2 
+; 0000 00D3         // currentV_R = (float)(currentRPM_R/(60/(0.4)*Gearratio));
+; 0000 00D4         // currentV_L = (float)(currentRPM_L/(60/(0.4)*Gearratio));
+; 0000 00D5 
+; 0000 00D6         // goal_currentV_R = (float)(goal_current_R/(60/(0.4)*Gearratio));
+; 0000 00D7         // goal_currentV_L = (float)(-goal_current_L/(60/(0.4)*Gearratio));
+; 0000 00D8 
+; 0000 00D9         // d_velocity = (currentV_R + currentV_L)/2;
+; 0000 00DA         // d_angularV = (currentV_R-currentV_L)/Length;
+; 0000 00DB         // g_velocity = (goal_currentV_R+goal_currentV_L)/2;
+; 0000 00DC         // g_angularV = (goal_currentV_R-goal_currentV_L)/Length;
+; 0000 00DD 
+; 0000 00DE         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
 ;PCODE: $00000107 VOL: 0
 ;PCODE: $00000108 VOL: 0
 ;PCODE: $00000109 VOL: 0
 ;PCODE: $0000010A VOL: 0
-; 0000 00CC         RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $0000010B VOL: 0
 ;PCODE: $0000010C VOL: 0
 ;PCODE: $0000010D VOL: 0
@@ -536,65 +554,80 @@
 ;PCODE: $0000010F VOL: 0
 ;PCODE: $00000110 VOL: 0
 ;PCODE: $00000111 VOL: 0
-; 0000 00CD         delay_ms(5);
 ;PCODE: $00000112 VOL: 0
+; 0000 00DF         TIMER0_OVERFLOW = 0;
 ;PCODE: $00000113 VOL: 0
 ;PCODE: $00000114 VOL: 0
-; 0000 00CE         currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
+; 0000 00E0         TCNT0 = 0;
 ;PCODE: $00000115 VOL: 0
 ;PCODE: $00000116 VOL: 0
+; 0000 00E1 
+; 0000 00E2         // d_angular += control_time*d_angularV;
+; 0000 00E3         // d_x += d_velocity*control_time*cos(d_angular);
+; 0000 00E4         // d_y += d_velocity*control_time*sin(d_angular);
+; 0000 00E5         // d_angular_circula = (int)(d_angular*Circular);
+; 0000 00E6 
+; 0000 00E7         // g_angular += control_time*g_angularV;
+; 0000 00E8         // g_x += g_velocity*control_time*cos(g_angular);
+; 0000 00E9         // g_y += g_velocity*control_time*sin(g_angular);
+; 0000 00EA         // g_angular_circula = (int)(g_angular*Circular);
+; 0000 00EB 
+; 0000 00EC         // motorR_distance = (float)(MOTORR_HALL*0.1325*Pi/160);
+; 0000 00ED         // motorL_distance = (float)(MOTORL_HALL*0.1325*Pi/160);
+; 0000 00EE         motorR_distance = (float)(MOTORR_HALL*0.4/160);
 ;PCODE: $00000117 VOL: 0
 ;PCODE: $00000118 VOL: 0
 ;PCODE: $00000119 VOL: 0
 ;PCODE: $0000011A VOL: 0
 ;PCODE: $0000011B VOL: 0
 ;PCODE: $0000011C VOL: 0
-; 0000 00CF         RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
 ;PCODE: $0000011D VOL: 0
 ;PCODE: $0000011E VOL: 0
+; 0000 00EF         motorL_distance = (float)(MOTORL_HALL*0.4/160);
 ;PCODE: $0000011F VOL: 0
 ;PCODE: $00000120 VOL: 0
 ;PCODE: $00000121 VOL: 0
 ;PCODE: $00000122 VOL: 0
 ;PCODE: $00000123 VOL: 0
-; 0000 00D0         delay_ms(5);
 ;PCODE: $00000124 VOL: 0
 ;PCODE: $00000125 VOL: 0
 ;PCODE: $00000126 VOL: 0
-; 0000 00D1         currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
+; 0000 00F0 
+; 0000 00F1         TIMER0_TIME += control_time;
 ;PCODE: $00000127 VOL: 0
 ;PCODE: $00000128 VOL: 0
 ;PCODE: $00000129 VOL: 0
 ;PCODE: $0000012A VOL: 0
+; 0000 00F2         if(TIMER0_TIME>0.03){
 ;PCODE: $0000012B VOL: 0
 ;PCODE: $0000012C VOL: 0
 ;PCODE: $0000012D VOL: 0
 ;PCODE: $0000012E VOL: 0
+; 0000 00F3             TIMER0_TIME_print += TIMER0_TIME;
 ;PCODE: $0000012F VOL: 0
-; 0000 00D2 
-; 0000 00D3         currentV_R = (float)(currentRPM_R/(60/(0.4)*Gearratio));
 ;PCODE: $00000130 VOL: 0
 ;PCODE: $00000131 VOL: 0
 ;PCODE: $00000132 VOL: 0
+; 0000 00F4             MOTORR_HALL = 0;
 ;PCODE: $00000133 VOL: 0
 ;PCODE: $00000134 VOL: 0
+; 0000 00F5             MOTORL_HALL = 0;
 ;PCODE: $00000135 VOL: 0
-; 0000 00D4         currentV_L = (float)(currentRPM_L/(60/(0.4)*Gearratio));
 ;PCODE: $00000136 VOL: 0
+; 0000 00F6 
+; 0000 00F7             hall_velocity = (float)((motorR_distance+motorL_distance)/(2*TIMER0_TIME));
 ;PCODE: $00000137 VOL: 0
 ;PCODE: $00000138 VOL: 0
 ;PCODE: $00000139 VOL: 0
 ;PCODE: $0000013A VOL: 0
 ;PCODE: $0000013B VOL: 0
-; 0000 00D5 
-; 0000 00D6         goal_currentV_R = (float)(goal_current_R/(60/(0.4)*Gearratio));
 ;PCODE: $0000013C VOL: 0
 ;PCODE: $0000013D VOL: 0
 ;PCODE: $0000013E VOL: 0
 ;PCODE: $0000013F VOL: 0
 ;PCODE: $00000140 VOL: 0
+; 0000 00F8             hall_angularV = (float)((motorR_distance-motorL_distance)/(Length*TIMER0_TIME));
 ;PCODE: $00000141 VOL: 0
-; 0000 00D7         goal_currentV_L = (float)(-goal_current_L/(60/(0.4)*Gearratio));
 ;PCODE: $00000142 VOL: 0
 ;PCODE: $00000143 VOL: 0
 ;PCODE: $00000144 VOL: 0
@@ -602,24 +635,22 @@
 ;PCODE: $00000146 VOL: 0
 ;PCODE: $00000147 VOL: 0
 ;PCODE: $00000148 VOL: 0
-; 0000 00D8 
-; 0000 00D9         d_velocity = (currentV_R + currentV_L)/2;
 ;PCODE: $00000149 VOL: 0
 ;PCODE: $0000014A VOL: 0
+; 0000 00F9             hall_angular += (float)((motorR_distance-motorL_distance)/Length);
 ;PCODE: $0000014B VOL: 0
 ;PCODE: $0000014C VOL: 0
 ;PCODE: $0000014D VOL: 0
 ;PCODE: $0000014E VOL: 0
 ;PCODE: $0000014F VOL: 0
-; 0000 00DA         d_angularV = (currentV_R-currentV_L)/Length;
 ;PCODE: $00000150 VOL: 0
 ;PCODE: $00000151 VOL: 0
 ;PCODE: $00000152 VOL: 0
 ;PCODE: $00000153 VOL: 0
+; 0000 00FA             hall_x += (float)((motorR_distance+motorL_distance)/2)*cos(hall_angular);
 ;PCODE: $00000154 VOL: 0
 ;PCODE: $00000155 VOL: 0
 ;PCODE: $00000156 VOL: 0
-; 0000 00DB         g_velocity = (goal_currentV_R+goal_currentV_L)/2;
 ;PCODE: $00000157 VOL: 0
 ;PCODE: $00000158 VOL: 0
 ;PCODE: $00000159 VOL: 0
@@ -627,16 +658,14 @@
 ;PCODE: $0000015B VOL: 0
 ;PCODE: $0000015C VOL: 0
 ;PCODE: $0000015D VOL: 0
-; 0000 00DC         g_angularV = (goal_currentV_R-goal_currentV_L)/Length;
 ;PCODE: $0000015E VOL: 0
 ;PCODE: $0000015F VOL: 0
 ;PCODE: $00000160 VOL: 0
 ;PCODE: $00000161 VOL: 0
 ;PCODE: $00000162 VOL: 0
+; 0000 00FB             hall_y += (float)((motorR_distance+motorL_distance)/2)*sin(hall_angular);
 ;PCODE: $00000163 VOL: 0
 ;PCODE: $00000164 VOL: 0
-; 0000 00DD 
-; 0000 00DE         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
 ;PCODE: $00000165 VOL: 0
 ;PCODE: $00000166 VOL: 0
 ;PCODE: $00000167 VOL: 0
@@ -648,21 +677,26 @@
 ;PCODE: $0000016D VOL: 0
 ;PCODE: $0000016E VOL: 0
 ;PCODE: $0000016F VOL: 0
-; 0000 00DF         TIMER0_OVERFLOW = 0;
 ;PCODE: $00000170 VOL: 0
 ;PCODE: $00000171 VOL: 0
-; 0000 00E0         TCNT0 = 0;
+; 0000 00FC             hall_angular_circula = (int)(hall_angular*Circular);
 ;PCODE: $00000172 VOL: 0
 ;PCODE: $00000173 VOL: 0
-; 0000 00E1 
-; 0000 00E2         d_angular += control_time*d_angularV;
 ;PCODE: $00000174 VOL: 0
 ;PCODE: $00000175 VOL: 0
 ;PCODE: $00000176 VOL: 0
+; 0000 00FD             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
+; 0000 00FE             // sprintf(BUFF, "%f, %f\n", currentV_L*control_time, motorL_distance);
+; 0000 00FF             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
+; 0000 0100             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d, %d\n", TIMER0_TIME_print, d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula);
+; 0000 0101             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %4d, %4d, %.3f\n", d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula, TIMER0_TIME_print);
+; 0000 0102             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f \n",TIMER0_TIME_print, g_velocity, d_velocity, hall_velocity);
+; 0000 0103             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d\n",TIMER0_TIME_print,g_velocity, hall_velocity, g_x, hall_x, del_ms);
+; 0000 0104             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n",TIMER0_TIME_print,g_velocity, d_velocity, hall_velocity,);
+; 0000 0105             sprintf(BUFF, "%.3f, %.d, %d, %d\n", TIMER0_TIME_print, g_angular_circula, hall_angular_circula,d__angular);
 ;PCODE: $00000177 VOL: 0
 ;PCODE: $00000178 VOL: 0
 ;PCODE: $00000179 VOL: 0
-; 0000 00E3         d_x += d_velocity*control_time*cos(d_angular);
 ;PCODE: $0000017A VOL: 0
 ;PCODE: $0000017B VOL: 0
 ;PCODE: $0000017C VOL: 0
@@ -675,208 +709,11 @@
 ;PCODE: $00000183 VOL: 0
 ;PCODE: $00000184 VOL: 0
 ;PCODE: $00000185 VOL: 0
-; 0000 00E4         d_y += d_velocity*control_time*sin(d_angular);
 ;PCODE: $00000186 VOL: 0
 ;PCODE: $00000187 VOL: 0
 ;PCODE: $00000188 VOL: 0
 ;PCODE: $00000189 VOL: 0
 ;PCODE: $0000018A VOL: 0
-;PCODE: $0000018B VOL: 0
-;PCODE: $0000018C VOL: 0
-;PCODE: $0000018D VOL: 0
-;PCODE: $0000018E VOL: 0
-;PCODE: $0000018F VOL: 0
-;PCODE: $00000190 VOL: 0
-;PCODE: $00000191 VOL: 0
-; 0000 00E5         d_angular_circula = (int)(d_angular*Circular);
-;PCODE: $00000192 VOL: 0
-;PCODE: $00000193 VOL: 0
-;PCODE: $00000194 VOL: 0
-;PCODE: $00000195 VOL: 0
-;PCODE: $00000196 VOL: 0
-; 0000 00E6 
-; 0000 00E7         g_angular += control_time*g_angularV;
-;PCODE: $00000197 VOL: 0
-;PCODE: $00000198 VOL: 0
-;PCODE: $00000199 VOL: 0
-;PCODE: $0000019A VOL: 0
-;PCODE: $0000019B VOL: 0
-;PCODE: $0000019C VOL: 0
-; 0000 00E8         g_x += g_velocity*control_time*cos(g_angular);
-;PCODE: $0000019D VOL: 0
-;PCODE: $0000019E VOL: 0
-;PCODE: $0000019F VOL: 0
-;PCODE: $000001A0 VOL: 0
-;PCODE: $000001A1 VOL: 0
-;PCODE: $000001A2 VOL: 0
-;PCODE: $000001A3 VOL: 0
-;PCODE: $000001A4 VOL: 0
-;PCODE: $000001A5 VOL: 0
-;PCODE: $000001A6 VOL: 0
-;PCODE: $000001A7 VOL: 0
-;PCODE: $000001A8 VOL: 0
-; 0000 00E9         g_y += g_velocity*control_time*sin(g_angular);
-;PCODE: $000001A9 VOL: 0
-;PCODE: $000001AA VOL: 0
-;PCODE: $000001AB VOL: 0
-;PCODE: $000001AC VOL: 0
-;PCODE: $000001AD VOL: 0
-;PCODE: $000001AE VOL: 0
-;PCODE: $000001AF VOL: 0
-;PCODE: $000001B0 VOL: 0
-;PCODE: $000001B1 VOL: 0
-;PCODE: $000001B2 VOL: 0
-;PCODE: $000001B3 VOL: 0
-;PCODE: $000001B4 VOL: 0
-; 0000 00EA         g_angular_circula = (int)(g_angular*Circular);
-;PCODE: $000001B5 VOL: 0
-;PCODE: $000001B6 VOL: 0
-;PCODE: $000001B7 VOL: 0
-;PCODE: $000001B8 VOL: 0
-;PCODE: $000001B9 VOL: 0
-; 0000 00EB 
-; 0000 00EC         // motorR_distance = (float)(MOTORR_HALL*0.1325*Pi/160);
-; 0000 00ED         // motorL_distance = (float)(MOTORL_HALL*0.1325*Pi/160);
-; 0000 00EE         motorR_distance = (float)(MOTORR_HALL*0.4/160);
-;PCODE: $000001BA VOL: 0
-;PCODE: $000001BB VOL: 0
-;PCODE: $000001BC VOL: 0
-;PCODE: $000001BD VOL: 0
-;PCODE: $000001BE VOL: 0
-;PCODE: $000001BF VOL: 0
-;PCODE: $000001C0 VOL: 0
-;PCODE: $000001C1 VOL: 0
-; 0000 00EF         motorL_distance = (float)(MOTORL_HALL*0.4/160);
-;PCODE: $000001C2 VOL: 0
-;PCODE: $000001C3 VOL: 0
-;PCODE: $000001C4 VOL: 0
-;PCODE: $000001C5 VOL: 0
-;PCODE: $000001C6 VOL: 0
-;PCODE: $000001C7 VOL: 0
-;PCODE: $000001C8 VOL: 0
-;PCODE: $000001C9 VOL: 0
-; 0000 00F0 
-; 0000 00F1         TIMER0_TIME += control_time;
-;PCODE: $000001CA VOL: 0
-;PCODE: $000001CB VOL: 0
-;PCODE: $000001CC VOL: 0
-;PCODE: $000001CD VOL: 0
-; 0000 00F2         if(TIMER0_TIME>0.05){
-;PCODE: $000001CE VOL: 0
-;PCODE: $000001CF VOL: 0
-;PCODE: $000001D0 VOL: 0
-;PCODE: $000001D1 VOL: 0
-; 0000 00F3             TIMER0_TIME_print += TIMER0_TIME;
-;PCODE: $000001D2 VOL: 0
-;PCODE: $000001D3 VOL: 0
-;PCODE: $000001D4 VOL: 0
-;PCODE: $000001D5 VOL: 0
-; 0000 00F4             MOTORR_HALL = 0;
-;PCODE: $000001D6 VOL: 0
-;PCODE: $000001D7 VOL: 0
-; 0000 00F5             MOTORL_HALL = 0;
-;PCODE: $000001D8 VOL: 0
-;PCODE: $000001D9 VOL: 0
-; 0000 00F6 
-; 0000 00F7             hall_velocity = (float)((motorR_distance+motorL_distance)/(2*TIMER0_TIME));
-;PCODE: $000001DA VOL: 0
-;PCODE: $000001DB VOL: 0
-;PCODE: $000001DC VOL: 0
-;PCODE: $000001DD VOL: 0
-;PCODE: $000001DE VOL: 0
-;PCODE: $000001DF VOL: 0
-;PCODE: $000001E0 VOL: 0
-;PCODE: $000001E1 VOL: 0
-;PCODE: $000001E2 VOL: 0
-;PCODE: $000001E3 VOL: 0
-; 0000 00F8             hall_angularV = (float)((motorR_distance-motorL_distance)/(Length*TIMER0_TIME));
-;PCODE: $000001E4 VOL: 0
-;PCODE: $000001E5 VOL: 0
-;PCODE: $000001E6 VOL: 0
-;PCODE: $000001E7 VOL: 0
-;PCODE: $000001E8 VOL: 0
-;PCODE: $000001E9 VOL: 0
-;PCODE: $000001EA VOL: 0
-;PCODE: $000001EB VOL: 0
-;PCODE: $000001EC VOL: 0
-;PCODE: $000001ED VOL: 0
-; 0000 00F9             hall_angular += (float)((motorR_distance-motorL_distance)/Length);
-;PCODE: $000001EE VOL: 0
-;PCODE: $000001EF VOL: 0
-;PCODE: $000001F0 VOL: 0
-;PCODE: $000001F1 VOL: 0
-;PCODE: $000001F2 VOL: 0
-;PCODE: $000001F3 VOL: 0
-;PCODE: $000001F4 VOL: 0
-;PCODE: $000001F5 VOL: 0
-;PCODE: $000001F6 VOL: 0
-; 0000 00FA             hall_x += (float)((motorR_distance+motorL_distance)/2)*cos(hall_angular);
-;PCODE: $000001F7 VOL: 0
-;PCODE: $000001F8 VOL: 0
-;PCODE: $000001F9 VOL: 0
-;PCODE: $000001FA VOL: 0
-;PCODE: $000001FB VOL: 0
-;PCODE: $000001FC VOL: 0
-;PCODE: $000001FD VOL: 0
-;PCODE: $000001FE VOL: 0
-;PCODE: $000001FF VOL: 0
-;PCODE: $00000200 VOL: 0
-;PCODE: $00000201 VOL: 0
-;PCODE: $00000202 VOL: 0
-;PCODE: $00000203 VOL: 0
-;PCODE: $00000204 VOL: 0
-;PCODE: $00000205 VOL: 0
-; 0000 00FB             hall_y += (float)((motorR_distance+motorL_distance)/2)*sin(hall_angular);
-;PCODE: $00000206 VOL: 0
-;PCODE: $00000207 VOL: 0
-;PCODE: $00000208 VOL: 0
-;PCODE: $00000209 VOL: 0
-;PCODE: $0000020A VOL: 0
-;PCODE: $0000020B VOL: 0
-;PCODE: $0000020C VOL: 0
-;PCODE: $0000020D VOL: 0
-;PCODE: $0000020E VOL: 0
-;PCODE: $0000020F VOL: 0
-;PCODE: $00000210 VOL: 0
-;PCODE: $00000211 VOL: 0
-;PCODE: $00000212 VOL: 0
-;PCODE: $00000213 VOL: 0
-;PCODE: $00000214 VOL: 0
-; 0000 00FC             hall_angular_circula = (int)(hall_angular*Circular);
-;PCODE: $00000215 VOL: 0
-;PCODE: $00000216 VOL: 0
-;PCODE: $00000217 VOL: 0
-;PCODE: $00000218 VOL: 0
-;PCODE: $00000219 VOL: 0
-; 0000 00FD             // sprintf(BUFF, "%f, %f, %f, %f\n", d_velocity, v_buff, d_angularV, a_buff);
-; 0000 00FE             // sprintf(BUFF, "%f, %f\n", currentV_L*control_time, motorL_distance);
-; 0000 00FF             // sprintf(BUFF, "%d, %d, %d\n", velocity, current_R, current_L);
-; 0000 0100             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d, %d\n", TIMER0_TIME_print, d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula);
-; 0000 0101             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %4d, %4d, %.3f\n", d_x, hall_x, d_y, hall_y, d_angular_circula, hall_angular_circula, TIMER0_TIME_print);
-; 0000 0102             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f \n",TIMER0_TIME_print, g_velocity, d_velocity, hall_velocity);
-; 0000 0103             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d\n",TIMER0_TIME_print,g_velocity, hall_velocity, g_x, hall_x, del_ms);
-; 0000 0104             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n",TIMER0_TIME_print,g_velocity, d_velocity, hall_velocity,);
-; 0000 0105             sprintf(BUFF, "%.3f, %.d, %d, %d\n", TIMER0_TIME_print, g_angular_circula, hall_angular_circula,d__angular);
-;PCODE: $0000021A VOL: 0
-;PCODE: $0000021B VOL: 0
-;PCODE: $0000021C VOL: 0
-;PCODE: $0000021D VOL: 0
-;PCODE: $0000021E VOL: 0
-;PCODE: $0000021F VOL: 0
-;PCODE: $00000220 VOL: 0
-;PCODE: $00000221 VOL: 0
-;PCODE: $00000222 VOL: 0
-;PCODE: $00000223 VOL: 0
-;PCODE: $00000224 VOL: 0
-;PCODE: $00000225 VOL: 0
-;PCODE: $00000226 VOL: 0
-;PCODE: $00000227 VOL: 0
-;PCODE: $00000228 VOL: 0
-;PCODE: $00000229 VOL: 0
-;PCODE: $0000022A VOL: 0
-;PCODE: $0000022B VOL: 0
-;PCODE: $0000022C VOL: 0
-;PCODE: $0000022D VOL: 0
 ; 0000 0106             // sprintf(BUFF, "%.3f, %.3f\n", TIMER0_TIME_print, hall_x);
 ; 0000 0107 
 ; 0000 0108             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", d_velocity, g_velocity, v_buff, TIMER0_TIME_print);
@@ -886,19 +723,19 @@
 ; 0000 010C             // sprintf(BUFF, "%d, %d, %d, %d\n", currentRPM_R, -currentRPM_L, goal_current_R, goal_current_L);
 ; 0000 010D             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", currentV_R, -currentV_L, v_buff, -_buff);
 ; 0000 010E             puts_USART1(BUFF);
-;PCODE: $0000022E VOL: 0
-;PCODE: $0000022F VOL: 0
-;PCODE: $00000230 VOL: 0
+;PCODE: $0000018B VOL: 0
+;PCODE: $0000018C VOL: 0
+;PCODE: $0000018D VOL: 0
 ; 0000 010F             TIMER0_TIME = 0;
-;PCODE: $00000231 VOL: 0
-;PCODE: $00000232 VOL: 0
+;PCODE: $0000018E VOL: 0
+;PCODE: $0000018F VOL: 0
 ; 0000 0110         }
 ; 0000 0111     }
-;PCODE: $00000233 VOL: 0
-;PCODE: $00000234 VOL: 0
-;PCODE: $00000235 VOL: 0
+;PCODE: $00000190 VOL: 0
+;PCODE: $00000191 VOL: 0
+;PCODE: $00000192 VOL: 0
 ; 0000 0112 }
-;PCODE: $00000236 VOL: 0
-;PCODE: $00000237 VOL: 0
-;PCODE: $00000238 VOL: 0
-;PCODE: $00000239 VOL: 0
+;PCODE: $00000193 VOL: 0
+;PCODE: $00000194 VOL: 0
+;PCODE: $00000195 VOL: 0
+;PCODE: $00000196 VOL: 0
