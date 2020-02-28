@@ -34,7 +34,11 @@ void main(void)
     int del_ms = 0;
     float del_s = 0;
     float diameter = 0;
-    int d_diameter = 0;
+    int d_diameter = 0; 
+    float _angular = 0;
+    int d__angular = 0;
+
+
     
     int currentRPM_R = 0;
     int currentRPM_L = 0;
@@ -73,11 +77,12 @@ void main(void)
     float hall_y = 0;
     float hall_angular = 0;
     int hall_angular_circula = 0;
+
     float hall_velocity = 0;
+    float hall_angularV = 0;
 
     float motorR_distance = 0;
     float motorL_distance = 0;
-    float a = 0;
     
     unsigned char BUFF[500] = {0,};
 
@@ -101,44 +106,74 @@ void main(void)
         if(CHECK_GETS)
         {                      
             UCSR1B &= ~(1<<RXEN1);
-            // sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
-            sscanf(VELOCITY_BUFF,"<%d>", &d_diameter);
+            sscanf(VELOCITY_BUFF,"<%d,%d,%d>", &velocity, &angularV, &del_ms);
+            // sscanf(VELOCITY_BUFF,"<%d>", &d_diameter);
+            sscanf(VELOCITY_BUFF, "<%d>",&d__angular);
+            
             if(!del_ms){
                 d_x = 0;
                 d_y = 0;
                 d_angular = 0;
             }
 
-            if(d_diameter>0){
-                diameter = (float)(((float)d_diameter/100)-0.05);
-                if((float)(MOTOR_CONT_MAX_SPEED*MOTOR_DRIVE_CEL_TIME)<diameter)
-                {
-                    del_s = (float)((diameter + (MOTOR_DRIVE_CEL_TIME*MOTOR_CONT_MAX_SPEED))/MOTOR_CONT_MAX_SPEED);
-                    del_s -= MOTOR_DRIVE_CEL_TIME;
-                }
-                else del_s = (float)(((MOTOR_DRIVE_CEL_TIME*MOTOR_CONT_MAX_SPEED)+diameter)/MOTOR_CONT_MAX_SPEED);
-                del_ms = (int)(del_s*1000);
-                v_buff = MOTOR_CONT_MAX_SPEED;
+            // if(d_diameter>0){
+            //     diameter = (float)(((float)d_diameter/100)-0.05);
+            //     if((float)(MOTOR_CONT_VELOCITY_MAX_SPEED*MOTOR_DRIVE_VELOCITY_CEL_TIME)<diameter)
+            //     {
+            //         del_s = (float)((diameter + (MOTOR_DRIVE_VELOCITY_CEL_TIME*MOTOR_CONT_VELOCITY_MAX_SPEED))/MOTOR_CONT_VELOCITY_MAX_SPEED);
+            //         del_s -= MOTOR_DRIVE_VELOCITY_CEL_TIME;
+            //     }
+            //     else del_s = (float)(((MOTOR_DRIVE_VELOCITY_CEL_TIME*MOTOR_CONT_VELOCITY_MAX_SPEED)+diameter)/MOTOR_CONT_VELOCITY_MAX_SPEED);
+            //     del_ms = (int)(del_s*1000);
+            //     v_buff = MOTOR_CONT_VELOCITY_MAX_SPEED;
+            //     a_buff = 0;
+            // }
+            // else{
+            //     diameter = (float)(((float)d_diameter/100)+0.05);
+            //     diameter = -diameter;
+            //     if((float)(MOTOR_CONT_VELOCITY_MAX_SPEED*MOTOR_DRIVE_VELOCITY_CEL_TIME)<diameter)
+            //     {
+            //         del_s = (float)((diameter + (MOTOR_DRIVE_VELOCITY_CEL_TIME*MOTOR_CONT_VELOCITY_MAX_SPEED))/MOTOR_CONT_VELOCITY_MAX_SPEED);
+            //         del_s -= MOTOR_DRIVE_VELOCITY_CEL_TIME;
+            //     }
+            //     else del_s = (float)(((MOTOR_DRIVE_VELOCITY_CEL_TIME*MOTOR_CONT_VELOCITY_MAX_SPEED)+diameter)/MOTOR_CONT_VELOCITY_MAX_SPEED);
+            //     del_ms = (int)(del_s*1000);
 
-                // v_buff = (float)velocity/1000;
-                a_buff = (float)angularV/1000;
+            //     v_buff = -MOTOR_CONT_VELOCITY_MAX_SPEED;
+            //     a_buff = 0;
+            // }
+
+            if(d__angular>0){
+                _angular = (float)((float)(d__angular-14.0)/Circular);
+                if((float)(MOTOR_CONT_ANGULAR_MAX_SPEED*MOTOR_DRIVE_ANGULAR_CEL_TIME)<_angular)
+                {
+                    del_s = (float)((_angular + (MOTOR_DRIVE_ANGULAR_CEL_TIME*MOTOR_CONT_ANGULAR_MAX_SPEED))/MOTOR_CONT_ANGULAR_MAX_SPEED);
+                    del_s -= MOTOR_DRIVE_ANGULAR_CEL_TIME;
+                }
+                else del_s = (float)(((MOTOR_DRIVE_ANGULAR_CEL_TIME*MOTOR_CONT_ANGULAR_MAX_SPEED)+_angular)/MOTOR_CONT_ANGULAR_MAX_SPEED);
+                del_ms = (int)(del_s*1000);
+
+                v_buff = 0;
+                a_buff = MOTOR_CONT_ANGULAR_MAX_SPEED;
             }
             else{
-                diameter = (float)(((float)d_diameter/100)+0.05);
-                diameter = -diameter;
-                if((float)(MOTOR_CONT_MAX_SPEED*MOTOR_DRIVE_CEL_TIME)<diameter)
+                _angular = (float)((float)(d__angular+14.0)/Circular);
+                _angular = -_angular;
+                if((float)(MOTOR_CONT_ANGULAR_MAX_SPEED*MOTOR_DRIVE_ANGULAR_CEL_TIME)<_angular)
                 {
-                    del_s = (float)((diameter + (MOTOR_DRIVE_CEL_TIME*MOTOR_CONT_MAX_SPEED))/MOTOR_CONT_MAX_SPEED);
-                    del_s -= MOTOR_DRIVE_CEL_TIME;
+                    del_s = (float)((_angular + (MOTOR_DRIVE_ANGULAR_CEL_TIME*MOTOR_CONT_ANGULAR_MAX_SPEED))/MOTOR_CONT_ANGULAR_MAX_SPEED);
+                    del_s -= MOTOR_DRIVE_ANGULAR_CEL_TIME;
                 }
-                else del_s = (float)(((MOTOR_DRIVE_CEL_TIME*MOTOR_CONT_MAX_SPEED)+diameter)/MOTOR_CONT_MAX_SPEED);
+                else del_s = (float)(((MOTOR_DRIVE_ANGULAR_CEL_TIME*MOTOR_CONT_ANGULAR_MAX_SPEED)+_angular)/MOTOR_CONT_ANGULAR_MAX_SPEED);
                 del_ms = (int)(del_s*1000);
-                v_buff = -MOTOR_CONT_MAX_SPEED;
-
-                // v_buff = (float)velocity/1000;
-                a_buff = (float)angularV/1000;
+                
+                v_buff = 0;
+                a_buff = -MOTOR_CONT_ANGULAR_MAX_SPEED;
             }
 
+            
+            // v_buff = (float)velocity/1000;
+            // a_buff = (float)angularV/1000;
             TIMER0_TIME_print = 0;
             Make_MSPEED(&v_buff, &a_buff, &velocity_R, &velocity_L);
 
@@ -148,7 +183,6 @@ void main(void)
             TIMER1_OVERFLOW = 0;
             TCNT1L = 0;            
 
-            // rootine_test = 1;
             STOP_FLAG = 1;
             CHECK_GETS = 0;
             UCSR1B |=(1<<RXEN1);
@@ -166,38 +200,38 @@ void main(void)
         }
         // if(goal_currentV_R==0 && goal_currentV_L==0) TIMER0_TIME_print = 0;
 
-        // delay_ms(5);
-        // RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
-        // delay_ms(5);
-        // currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
-        // RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
-        // delay_ms(5);
-        // currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
+        delay_ms(5);
+        RTU_ReedOperate0(R, (unsigned int)2 ,(unsigned int)2);
+        delay_ms(5);
+        currentRPM_R = get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_R);
+        RTU_ReedOperate0(L, (unsigned int)2 ,(unsigned int)2);
+        delay_ms(5);
+        currentRPM_L = -get_RPM(PACKET_BUFF, PACKET_BUFF_IDX, &goal_current_L);
 
-        // // currentV_R = (float)(currentRPM_R/(60/(Pi*0.125)*Gearratio));
-        // // currentV_L = (float)(currentRPM_L/(60/(Pi*0.125)*Gearratio));
+        currentV_R = (float)(currentRPM_R/(60/(0.4)*Gearratio));
+        currentV_L = (float)(currentRPM_L/(60/(0.4)*Gearratio));
 
-        // // goal_currentV_R = (float)(goal_current_R/(60/(Pi*0.125)*Gearratio));
-        // // goal_currentV_L = (float)(-goal_current_L/(60/(Pi*0.125)*Gearratio));
+        goal_currentV_R = (float)(goal_current_R/(60/(0.4)*Gearratio));
+        goal_currentV_L = (float)(-goal_current_L/(60/(0.4)*Gearratio));
 
-        // d_velocity = (currentV_R + currentV_L)/2;
-        // d_angularV = (currentV_R-currentV_L)/Length;
-        // g_velocity = (goal_currentV_R+goal_currentV_L)/2;
-        // g_angularV = (goal_currentV_R-goal_currentV_L)/Length;
+        d_velocity = (currentV_R + currentV_L)/2;
+        d_angularV = (currentV_R-currentV_L)/Length;
+        g_velocity = (goal_currentV_R+goal_currentV_L)/2;
+        g_angularV = (goal_currentV_R-goal_currentV_L)/Length;
 
         control_time = ((TIMER0_OVERFLOW)*255 + TCNT0)*0.0000694444;
         TIMER0_OVERFLOW = 0;
         TCNT0 = 0;
 
-        // d_angular += control_time*d_angularV;
-        // d_x += d_velocity*control_time*cos(d_angular);
-        // d_y += d_velocity*control_time*sin(d_angular);
-        // d_angular_circula = (int)(d_angular*Circular);
+        d_angular += control_time*d_angularV;
+        d_x += d_velocity*control_time*cos(d_angular);
+        d_y += d_velocity*control_time*sin(d_angular);
+        d_angular_circula = (int)(d_angular*Circular);
 
-        // g_angular += control_time*g_angularV;
-        // g_x += g_velocity*control_time*cos(g_angular);
-        // g_y += g_velocity*control_time*sin(g_angular);
-        // g_angular_circula = (int)(g_angular*Circular);
+        g_angular += control_time*g_angularV;
+        g_x += g_velocity*control_time*cos(g_angular);
+        g_y += g_velocity*control_time*sin(g_angular);
+        g_angular_circula = (int)(g_angular*Circular);
         
         // motorR_distance = (float)(MOTORR_HALL*0.1325*Pi/160);
         // motorL_distance = (float)(MOTORL_HALL*0.1325*Pi/160);
@@ -205,12 +239,13 @@ void main(void)
         motorL_distance = (float)(MOTORL_HALL*0.4/160);
         
         TIMER0_TIME += control_time;
-        if(TIMER0_TIME>0.01){
+        if(TIMER0_TIME>0.05){
             TIMER0_TIME_print += TIMER0_TIME;
             MOTORR_HALL = 0;
             MOTORL_HALL = 0;
 
             hall_velocity = (float)((motorR_distance+motorL_distance)/(2*TIMER0_TIME));
+            hall_angularV = (float)((motorR_distance-motorL_distance)/(Length*TIMER0_TIME));
             hall_angular += (float)((motorR_distance-motorL_distance)/Length);
             hall_x += (float)((motorR_distance+motorL_distance)/2)*cos(hall_angular);
             hall_y += (float)((motorR_distance+motorL_distance)/2)*sin(hall_angular);
@@ -223,7 +258,7 @@ void main(void)
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f \n",TIMER0_TIME_print, g_velocity, d_velocity, hall_velocity);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f, %.3f, %d\n",TIMER0_TIME_print,g_velocity, hall_velocity, g_x, hall_x, del_ms);
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n",TIMER0_TIME_print,g_velocity, d_velocity, hall_velocity,);
-            // sprintf(BUFF, "%.3f, %d, %d\n", TIMER0_TIME_print, MOTORR_HALL, MOTORL_HALL);
+            sprintf(BUFF, "%.3f, %.d, %d, %d\n", TIMER0_TIME_print, g_angular_circula, hall_angular_circula,d__angular);
             // sprintf(BUFF, "%.3f, %.3f\n", TIMER0_TIME_print, hall_x);
 
             // sprintf(BUFF, "%.3f, %.3f, %.3f, %.3f\n", d_velocity, g_velocity, v_buff, TIMER0_TIME_print);
