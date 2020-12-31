@@ -20,7 +20,7 @@ arduino uno joystick
 ![logo](https://i.ibb.co/Wn0rF2T/image.png)
 
 
-### Robot Speed Calculation  (ICR)   https://i.ibb.co/Wn0rF2T/image.png
+### Robot Speed Calculation  (ICR)
 ![logo](https://i.ibb.co/PZ8WJTp/image.png)
 ![logo](https://i.ibb.co/kgNLpF1/2020-12-27-233705.jpg)
 ![logo](https://i.ibb.co/ypZqq20/2.png)
