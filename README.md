@@ -16,7 +16,11 @@ arduino uno joystick
 [![Indoor](https://img.youtube.com/vi/vlAU2UxNEbI/maxresdefault.jpg)](https://youtu.be/vlAU2UxNEbI)
 
 
-### Robot Speed Calculation  (ICR)   https://i.ibb.co/PZ8WJTp/image.png
+### Robot Hardware configuration diagram 
+![logo](https://i.ibb.co/Wn0rF2T/image.png)
+
+
+### Robot Speed Calculation  (ICR)   https://i.ibb.co/Wn0rF2T/image.png
 ![logo](https://i.ibb.co/PZ8WJTp/image.png)
 ![logo](https://i.ibb.co/kgNLpF1/2020-12-27-233705.jpg)
 ![logo](https://i.ibb.co/ypZqq20/2.png)
